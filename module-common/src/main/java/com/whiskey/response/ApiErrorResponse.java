@@ -1,16 +1,16 @@
 package com.whiskey.response;
 
-public record ApiErrorResponse(
+public record ApiErrorResponse<T>(
     boolean success,
     String code,
     String message,
-    Object dataOrNull // or null, or errors 리스트
+    T data
 ) {
-    public static ApiErrorResponse of(String code, String message) {
+    public static <T> ApiErrorResponse<T> failure(String code, String message) {
         return new ApiErrorResponse(false, code, message, null);
     }
 
-    public static ApiErrorResponse of(String code, String message, Object dataOrNull) {
-        return new ApiErrorResponse(false, code, message, dataOrNull);
+    public static <T> ApiErrorResponse<T> failure(String code, String message, T data) {
+        return new ApiErrorResponse(false, code, message, data);
     }
 }

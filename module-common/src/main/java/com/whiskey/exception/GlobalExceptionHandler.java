@@ -13,9 +13,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(CommonException.class)
     public ResponseEntity<ApiErrorResponse> commonException(CommonException exception) {
-        HttpStatus status = exception.getErrorCode().getHttpStatus();
-        String responseCode = exception.getErrorCode().name();
-        ApiErrorResponse response = ApiErrorResponse.of(responseCode, exception.getMessage());
+        HttpStatus status = exception.errorCode().getHttpStatus();
+        String responseCode = exception.errorCode().name();
+
+        ApiErrorResponse response = ApiErrorResponse.failure(responseCode, exception.getMessage(), exception.data());
 
         return status(status).body(response);
     }

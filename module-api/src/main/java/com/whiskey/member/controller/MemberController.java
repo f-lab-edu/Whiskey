@@ -17,12 +17,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class MemberController {
 
-    private final MemberService userService;
+    private final MemberService memberService;
 
     @PostMapping("/signup")
     @ResponseStatus(HttpStatus.OK)
     public ApiResponse<Void> signup(@Valid @RequestBody MemberRegisterValue memberDto) {
-        userService.signup(memberDto);
+        memberService.signup(memberDto);
         return ApiResponse.success("회원가입에 성공하셨습니다.");
     }
 }

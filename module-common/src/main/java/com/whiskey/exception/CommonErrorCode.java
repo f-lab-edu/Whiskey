@@ -30,4 +30,8 @@ public enum CommonErrorCode {
     public CommonException exception(String message) {
         return new CommonException(this, message);
     }
+
+    public CommonException exception(String message, Object data) {
+        return new CommonException(this, message, data);
+    }
 }
