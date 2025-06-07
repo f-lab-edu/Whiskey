@@ -34,18 +34,18 @@ public class Member extends BaseEntity {
     private String oauthId;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, name = "is_status")
-    private MemberStatus isStatus;
+    @Column(nullable = false)
+    private MemberStatus status;
 
     @CreatedDate
     @Column(nullable = false, name = "reg_date")
     private LocalDateTime regDate;
 
     @Builder
-    public Member(String passwordHash, String memberName, String email, MemberStatus isStatus) {
+    public Member(String passwordHash, String memberName, String email, MemberStatus status) {
         this.passwordHash = passwordHash;
         this.memberName = memberName;
         this.email = email;
-        this.isStatus = isStatus;
+        this.status = status;
     }
 }

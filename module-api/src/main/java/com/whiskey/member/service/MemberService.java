@@ -27,7 +27,7 @@ public class MemberService {
             .passwordHash(encryptPassword)
             .memberName(memberDto.memberName())
             .email(memberDto.email())
-            .isStatus(MemberStatus.ACTIVE)
+            .status(MemberStatus.ACTIVE)
             .build();
 
         memberRepository.save(member);
