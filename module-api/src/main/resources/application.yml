@@ -1,16 +1,14 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:testdb
-    driver-class-name: org.h2.Driver
-    username: sa
-    password: 1234
+    url: jdbc:mysql://localhost:3306/whiskey?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: root1234
   jpa:
     hibernate:
-      ddl-auto: create-drop   # 또는 update
+      ddl-auto: update   # 또는 update
     show-sql: true
     properties:
       hibernate:
         format_sql: true
-  h2:
-    console:
-      enabled: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
