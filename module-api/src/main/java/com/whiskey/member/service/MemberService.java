@@ -2,7 +2,9 @@ package com.whiskey.member.service;
 
 import com.whiskey.domain.member.Member;
 import com.whiskey.domain.member.enums.MemberStatus;
-import com.whiskey.exception.CommonErrorCode;
+import com.whiskey.dto.ValidationErrorValue;
+import com.whiskey.exception.ErrorCode;
+import com.whiskey.exception.BusinessException;
 import com.whiskey.member.dto.MemberRegisterValue;
 import com.whiskey.member.repository.MemberRepository;
 import jakarta.transaction.Transactional;
@@ -24,7 +26,7 @@ public class MemberService {
         // 회원가입 약관동의 체크 확인
 
         // 중복가입 체크
-        checkDuplicate(memberDto.email(), memberDto.memberName());
+        checkDuplicate(memberDto.email());
 
         try {
             String encryptPassword = passwordEncoder.encode(memberDto.password());
@@ -38,14 +40,14 @@ public class MemberService {
             memberRepository.save(member);
         }
         catch(DataIntegrityViolationException e) {
-            throw CommonErrorCode.CONFLICT.exception("이미 가입된 이메일입니다.");
+            throw ErrorCode.CONFLICT.exception("이미 가입된 이메일입니다.");
         }
     }
 
-    private void checkDuplicate(String email, String memberName) {
+    private void checkDuplicate(String email) {
         if(memberRepository.existsByEmailAndStatus(email, MemberStatus.ACTIVE)) {
-            Map<String, Object> inputData = Map.of("memberName", memberName, "email", email);
-            throw CommonErrorCode.CONFLICT.exception("이미 가입된 이메일입니다.", inputData);
+            ValidationErrorValue errorValue = new ValidationErrorValue("email", email, "duplicate");
+            throw ErrorCode.CONFLICT.exception("이미 가입된 이메일입니다.", errorValue);
         }
     }
 }
