@@ -1,0 +1,1 @@
+ALTER TABLE whiskey ADD COLUMN volume int NULL;

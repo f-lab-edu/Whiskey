@@ -26,13 +26,12 @@ public class MemberController {
     @PostMapping("/members")
     public ApiResponse<Void> signup(@Valid @RequestBody MemberRegisterValue memberDto) {
         memberService.signup(memberDto);
-
         return ApiResponse.success("회원가입이 완료되었습니다.");
     }
 
     @GetMapping("/members/{id}")
-    public ResponseEntity<MemberResponse> getMemberById(@PathVariable("id") Long id) {
+    public ApiResponse<MemberResponse> getMemberById(@PathVariable("id") Long id) {
         MemberResponse member = memberService.getMemberById(id);
-        return ResponseEntity.ok(member);
+        return ApiResponse.success("회원정보를 조회하였습니다.", member);
     }
 }

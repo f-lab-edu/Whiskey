@@ -1,5 +1,8 @@
 package com.whiskey.domain.member.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum MemberStatus {
     ACTIVE("활성 계정"),
     INACTIVE("휴면 계정"),
@@ -11,7 +14,4 @@ public enum MemberStatus {
         this.value = value;
     }
 
-    public String getValue() {
-        return value;
-    }
 }

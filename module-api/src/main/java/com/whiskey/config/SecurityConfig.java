@@ -27,10 +27,16 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(
             authorize -> authorize
+                .requestMatchers("/swagger-ui/**", "/swagger-resources/**", "/v3/api-docs/**", "/v3/api-docs").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/members").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/auth/token/refresh").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/members/{id}").hasRole("USER")
-                .requestMatchers("/api/auth/login").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/admin/whiskey").permitAll()
+                .requestMatchers(HttpMethod.PUT,"/api/admin/whiskey/*").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/admin/whiskey/*").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/admin/whiskey/*").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/admin/whiskey").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
