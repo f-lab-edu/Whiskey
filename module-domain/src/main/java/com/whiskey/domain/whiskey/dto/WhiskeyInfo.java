@@ -1,4 +1,4 @@
-package com.whiskey.admin.whiskey.dto;
+package com.whiskey.domain.whiskey.dto;
 
 import com.whiskey.domain.whiskey.Whiskey;
 import com.whiskey.domain.whiskey.enums.MaltType;
@@ -6,25 +6,27 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public record WhiskeyResponseDto(
+public record WhiskeyInfo(
+    long id,
     String distillery,
     String name,
     String country,
     int age,
-    MaltType maltType,
+    MaltType  maltType,
     double abv,
     String description,
     String imagePath,
     List<String> casks
 ) {
-    public static WhiskeyResponseDto from(Whiskey whiskey) {
-        List<String> cask = whiskey.getCasks()
+    public static WhiskeyInfo from(Whiskey whiskey) {
+        List<String> casks = whiskey.getCasks()
             .stream()
             .filter(caskInfo -> caskInfo.getType() != null)
             .map(caskInfo -> caskInfo.getType().name())
             .collect(Collectors.toList());
 
-        return new WhiskeyResponseDto(
+        return new WhiskeyInfo(
+            whiskey.getId(),
             whiskey.getDistillery(),
             whiskey.getName(),
             whiskey.getCountry(),
@@ -33,15 +35,15 @@ public record WhiskeyResponseDto(
             whiskey.getAbv(),
             whiskey.getDescription(),
             whiskey.getImagePath(),
-            cask
+            casks
         );
     }
 
-    public static List<WhiskeyResponseDto> from(List<Whiskey> whiskeys) {
-        List<WhiskeyResponseDto> responses = new ArrayList<>();
+    public static List<WhiskeyInfo> from(List<Whiskey> whiskeys) {
+        List<WhiskeyInfo> responses = new ArrayList<>();
 
         for(Whiskey whiskey : whiskeys) {
-            WhiskeyResponseDto response = from(whiskey);
+            WhiskeyInfo response = from(whiskey);
             responses.add(response);
         }
 

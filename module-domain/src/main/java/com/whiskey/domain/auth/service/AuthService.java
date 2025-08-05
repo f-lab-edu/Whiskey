@@ -1,18 +1,16 @@
-package com.whiskey.auth.service;
+package com.whiskey.domain.auth.service;
 
-import com.whiskey.auth.dto.LoginRequest;
-import com.whiskey.auth.dto.TokenRefreshResponse;
-import com.whiskey.auth.repository.RefreshTokenRepository;
 import com.whiskey.domain.auth.JwtResponse;
 import com.whiskey.domain.auth.MemberInfo;
 import com.whiskey.domain.auth.RefreshToken;
+import com.whiskey.domain.auth.dto.TokenInfo;
+import com.whiskey.domain.auth.repository.RefreshTokenRepository;
 import com.whiskey.domain.member.Member;
 import com.whiskey.domain.member.enums.MemberStatus;
+import com.whiskey.domain.member.repository.MemberRepository;
 import com.whiskey.exception.ErrorCode;
-import com.whiskey.member.repository.MemberRepository;
 import com.whiskey.security.jwt.JwtTokenProvider;
 import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -34,9 +32,9 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
 
-    public JwtResponse login(@Valid LoginRequest loginRequest) {
+    public JwtResponse login(String email, String password) {
         try {
-            Member member = authenticateMember(loginRequest.email(), loginRequest.password());
+            Member member = authenticateMember(email, password);
 
             List<SimpleGrantedAuthority> authorities = List.of(
                 new SimpleGrantedAuthority("ROLE_USER")
@@ -102,7 +100,7 @@ public class AuthService {
         return false;
     }
 
-    public TokenRefreshResponse refreshAccessToken(String refreshToken) {
+    public TokenInfo refreshAccessToken(String refreshToken) {
         Long memberId = jwtTokenProvider.getMemberIdFromRefreshToken(refreshToken);
 
         boolean isValid = isValid(memberId, refreshToken);
@@ -116,7 +114,7 @@ public class AuthService {
 
         String newAccessToken = jwtTokenProvider.generateToken(memberId, authorities);
 
-        return new TokenRefreshResponse(
+        return new TokenInfo(
             newAccessToken,
             refreshToken,
             "Bearer",

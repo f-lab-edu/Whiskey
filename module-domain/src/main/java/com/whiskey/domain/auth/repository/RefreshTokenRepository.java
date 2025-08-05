@@ -1,4 +1,4 @@
-package com.whiskey.auth.repository;
+package com.whiskey.domain.auth.repository;
 
 import com.whiskey.domain.auth.RefreshToken;
 import java.util.Optional;

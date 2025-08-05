@@ -1,13 +1,13 @@
-package com.whiskey.admin.whiskey.repository;
+package com.whiskey.domain.whiskey.repository;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.whiskey.admin.whiskey.dto.CaskRegisterDto;
-import com.whiskey.admin.whiskey.dto.WhiskeyRegisterDto;
-import com.whiskey.admin.whiskey.dto.WhiskeySearchDto;
 import com.whiskey.domain.whiskey.QCask;
 import com.whiskey.domain.whiskey.QWhiskey;
 import com.whiskey.domain.whiskey.Whiskey;
+import com.whiskey.domain.whiskey.dto.CaskRegisterCommand;
+import com.whiskey.domain.whiskey.dto.WhiskeyRegisterCommand;
+import com.whiskey.domain.whiskey.dto.WhiskeySearchCommand;
 import com.whiskey.domain.whiskey.enums.CaskType;
 import com.whiskey.domain.whiskey.enums.MaltType;
 import java.util.List;
@@ -17,16 +17,16 @@ import org.springframework.util.StringUtils;
 
 @Repository
 @Slf4j
-public class AdminWhiskeyRepositoryImpl implements AdminWhiskeyRepositoryCustom {
+public class WhiskeyRepositoryImpl implements WhiskeyRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
 
-    public AdminWhiskeyRepositoryImpl(JPAQueryFactory queryFactory) {
+    public WhiskeyRepositoryImpl(JPAQueryFactory queryFactory) {
         this.queryFactory = queryFactory;
     }
 
     @Override
-    public List<Whiskey> searchWhiskeys(WhiskeySearchDto whiskeyDto) {
+    public List<Whiskey> searchWhiskeys(WhiskeySearchCommand whiskeyDto) {
         QWhiskey whiskey = QWhiskey.whiskey;
         return queryFactory
             .selectFrom(whiskey)
@@ -41,12 +41,12 @@ public class AdminWhiskeyRepositoryImpl implements AdminWhiskeyRepositoryCustom 
     }
 
     @Override
-    public int checkDuplicateWhiskey(WhiskeyRegisterDto whiskeyDto) {
+    public int checkDuplicateWhiskey(WhiskeyRegisterCommand whiskeyDto) {
         QWhiskey whiskey = QWhiskey.whiskey;
         QCask cask = QCask.cask;
 
         List<CaskType> caskType = whiskeyDto.casks().stream()
-            .map(CaskRegisterDto::type)
+            .map(CaskRegisterCommand::type)
             .sorted()
             .toList();
 

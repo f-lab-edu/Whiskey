@@ -1,9 +1,13 @@
-package com.whiskey.admin.whiskey.controller;
+package com.whiskey.whiskey.controller;
 
-import com.whiskey.admin.whiskey.dto.WhiskeyRegisterDto;
-import com.whiskey.admin.whiskey.dto.WhiskeyResponseDto;
-import com.whiskey.admin.whiskey.dto.WhiskeySearchDto;
-import com.whiskey.admin.whiskey.service.AdminWhiskeyService;
+import com.whiskey.domain.whiskey.dto.CaskRegisterCommand;
+import com.whiskey.domain.whiskey.dto.WhiskeyInfo;
+import com.whiskey.domain.whiskey.dto.WhiskeyRegisterCommand;
+import com.whiskey.domain.whiskey.dto.WhiskeySearchCommand;
+import com.whiskey.whiskey.dto.WhiskeyRegisterDto;
+import com.whiskey.whiskey.dto.WhiskeyResponseDto;
+import com.whiskey.whiskey.dto.WhiskeySearchDto;
+import com.whiskey.domain.whiskey.service.WhiskeyService;
 import com.whiskey.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -25,22 +29,50 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
 @Slf4j
-public class AdminWhiskeyController {
+public class WhiskeyController {
 
-    private final AdminWhiskeyService whiskeyService;
+    private final WhiskeyService whiskeyService;
 
 //    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/whiskey")
     @Operation(summary = "위스키 등록", description = "위스키를 등록합니다.")
     public ApiResponse<Void> register(@Valid @RequestBody WhiskeyRegisterDto whiskeyDto) {
-        whiskeyService.register(whiskeyDto);
+        WhiskeyRegisterCommand command = new WhiskeyRegisterCommand(
+            whiskeyDto.distillery(),
+            whiskeyDto.name(),
+            whiskeyDto.country(),
+            whiskeyDto.age(),
+            whiskeyDto.maltType(),
+            whiskeyDto.abv(),
+            whiskeyDto.volume(),
+            whiskeyDto.description(),
+            whiskeyDto.casks().stream()
+                .map(caskDto -> new CaskRegisterCommand(caskDto.type()))
+                .toList()
+        );
+
+        whiskeyService.register(command);
         return ApiResponse.success("위스키 등록이 완료되었습니다.");
     }
 
     @PutMapping("/whiskey/{id}")
     @Operation(summary = "위스키 수정", description = "위스키 ID로 위스키 정보를 수정합니다.")
     public ApiResponse<Void> update(@Parameter(description = "위스키 ID") @PathVariable("id") Long id, @Valid @RequestBody WhiskeyRegisterDto whiskeyDto) {
-        whiskeyService.update(id, whiskeyDto);
+        WhiskeyRegisterCommand command = new WhiskeyRegisterCommand(
+            whiskeyDto.distillery(),
+            whiskeyDto.name(),
+            whiskeyDto.country(),
+            whiskeyDto.age(),
+            whiskeyDto.maltType(),
+            whiskeyDto.abv(),
+            whiskeyDto.volume(),
+            whiskeyDto.description(),
+            whiskeyDto.casks().stream()
+                .map(caskDto -> new CaskRegisterCommand(caskDto.type()))
+                .toList()
+        );
+
+        whiskeyService.update(id, command);
         return ApiResponse.success("위스키 정보가 수정되었습니다.");
     }
 
@@ -54,14 +86,27 @@ public class AdminWhiskeyController {
     @GetMapping("/whiskey/{id}")
     @Operation(summary = "위스키 조회", description = "위스키 ID로 위스키 정보를 조회합니다.")
     public ApiResponse<WhiskeyResponseDto> get(@Parameter(description = "위스키 ID") @PathVariable("id") Long id) {
-        WhiskeyResponseDto whiskey = whiskeyService.findById(id);
-        return ApiResponse.success("위스키를 조회하였습니다.", whiskey);
+        WhiskeyInfo whiskeyInfo = whiskeyService.findById(id);
+        WhiskeyResponseDto response = WhiskeyResponseDto.from(whiskeyInfo);
+        return ApiResponse.success("위스키를 조회하였습니다.", response);
     }
 
     @GetMapping("/whiskey")
     @Operation(summary = "위스키 목록 조회", description = "위스키 목록을 조회할 수 있습니다. 또, 증류소, 이름, 생산국가, 연도, 몰트 타입, 도수, 용량 등의 정보로 검색도 가능합니다.")
     public ApiResponse<List<WhiskeyResponseDto>> list(@Valid WhiskeySearchDto whiskeyDto) {
-        List<WhiskeyResponseDto> whiskeys = whiskeyService.searchWhiskeys(whiskeyDto);
-        return ApiResponse.success("위스키 목록을 조회하였습니다.", whiskeys);
+        WhiskeySearchCommand command = new WhiskeySearchCommand(
+            whiskeyDto.distillery(),
+            whiskeyDto.name(),
+            whiskeyDto.country(),
+            whiskeyDto.age(),
+            whiskeyDto.maltType(),
+            whiskeyDto.abv(),
+            whiskeyDto.volume(),
+            whiskeyDto.description()
+        );
+
+        List<WhiskeyInfo> whiskeys = whiskeyService.searchWhiskeys(command);
+        List<WhiskeyResponseDto> responses = WhiskeyResponseDto.from(whiskeys);
+        return ApiResponse.success("위스키 목록을 조회하였습니다.", responses);
     }
 }

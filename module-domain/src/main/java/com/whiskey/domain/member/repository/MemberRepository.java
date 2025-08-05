@@ -1,4 +1,4 @@
-package com.whiskey.member.repository;
+package com.whiskey.domain.member.repository;
 
 import com.whiskey.domain.member.Member;
 import com.whiskey.domain.member.enums.MemberStatus;

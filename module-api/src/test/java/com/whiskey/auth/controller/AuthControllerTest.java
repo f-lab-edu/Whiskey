@@ -6,7 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.whiskey.domain.member.Member;
 import com.whiskey.domain.member.enums.MemberStatus;
-import com.whiskey.member.repository.MemberRepository;
+import com.whiskey.domain.member.repository.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

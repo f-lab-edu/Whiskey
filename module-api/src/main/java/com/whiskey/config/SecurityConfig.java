@@ -32,7 +32,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/auth/token/refresh").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/members/{id}").hasRole("USER")
                 .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/admin/whiskey").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/admin/whiskey").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT,"/api/admin/whiskey/*").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/admin/whiskey/*").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/admin/whiskey/*").hasRole("ADMIN")

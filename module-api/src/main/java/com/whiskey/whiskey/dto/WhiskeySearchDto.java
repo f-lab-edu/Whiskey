@@ -1,4 +1,4 @@
-package com.whiskey.admin.whiskey.dto;
+package com.whiskey.whiskey.dto;
 
 import com.whiskey.domain.whiskey.enums.MaltType;
 
@@ -11,5 +11,4 @@ public record WhiskeySearchDto(
     Double abv,
     Integer volume,
     String description
-    ) {
-}
+) {}

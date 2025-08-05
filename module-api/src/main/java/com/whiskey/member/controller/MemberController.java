@@ -1,13 +1,13 @@
 package com.whiskey.member.controller;
 
+import com.whiskey.domain.member.dto.MemberInfo;
 import com.whiskey.member.dto.MemberRegisterValue;
 import com.whiskey.member.dto.MemberResponse;
-import com.whiskey.member.service.MemberService;
+import com.whiskey.domain.member.service.MemberService;
 import com.whiskey.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,13 +25,14 @@ public class MemberController {
 
     @PostMapping("/members")
     public ApiResponse<Void> signup(@Valid @RequestBody MemberRegisterValue memberDto) {
-        memberService.signup(memberDto);
+        memberService.signup(memberDto.email(), memberDto.password(), memberDto.memberName());
         return ApiResponse.success("회원가입이 완료되었습니다.");
     }
 
     @GetMapping("/members/{id}")
     public ApiResponse<MemberResponse> getMemberById(@PathVariable("id") Long id) {
-        MemberResponse member = memberService.getMemberById(id);
-        return ApiResponse.success("회원정보를 조회하였습니다.", member);
+        MemberInfo memberInfo = memberService.getMemberById(id);
+        MemberResponse response = MemberResponse.from(memberInfo);
+        return ApiResponse.success("회원정보를 조회하였습니다.", response);
     }
 }

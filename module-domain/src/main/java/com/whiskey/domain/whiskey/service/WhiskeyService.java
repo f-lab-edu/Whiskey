@@ -1,17 +1,14 @@
-package com.whiskey.admin.whiskey.service;
+package com.whiskey.domain.whiskey.service;
 
-import com.whiskey.admin.whiskey.dto.CaskRegisterDto;
-import com.whiskey.admin.whiskey.dto.WhiskeyRegisterDto;
-import com.whiskey.admin.whiskey.dto.WhiskeyResponseDto;
-import com.whiskey.admin.whiskey.dto.WhiskeySearchDto;
-import com.whiskey.admin.whiskey.repository.AdminWhiskeyRepository;
+import com.whiskey.domain.whiskey.dto.WhiskeyInfo;
+import com.whiskey.domain.whiskey.dto.WhiskeyRegisterCommand;
+import com.whiskey.domain.whiskey.dto.WhiskeySearchCommand;
+import com.whiskey.domain.whiskey.repository.WhiskeyRepository;
 import com.whiskey.domain.whiskey.Cask;
 import com.whiskey.domain.whiskey.Whiskey;
 import com.whiskey.exception.ErrorCode;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,12 +17,12 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class AdminWhiskeyService {
+public class WhiskeyService {
 
-    private final AdminWhiskeyRepository whiskeyRepository;
+    private final WhiskeyRepository whiskeyRepository;
 
     @Transactional
-    public void register(WhiskeyRegisterDto whiskeyDto) {
+    public void register(WhiskeyRegisterCommand whiskeyDto) {
         checkDuplicate(whiskeyDto);
 
         Whiskey whiskey = Whiskey.builder()
@@ -50,7 +47,7 @@ public class AdminWhiskeyService {
         whiskeyRepository.save(whiskey);
     }
 
-    private void checkDuplicate(WhiskeyRegisterDto whiskeyDto) {
+    private void checkDuplicate(WhiskeyRegisterCommand whiskeyDto) {
         int count = whiskeyRepository.checkDuplicateWhiskey(whiskeyDto);
 
         if(count > 0) {
@@ -59,7 +56,7 @@ public class AdminWhiskeyService {
     }
 
     @Transactional
-    public void update(Long id, @Valid WhiskeyRegisterDto whiskeyDto) {
+    public void update(Long id, @Valid WhiskeyRegisterCommand whiskeyDto) {
         checkDuplicate(whiskeyDto);
 
         Whiskey whiskey = whiskeyRepository.findById(id).orElseThrow(() -> ErrorCode.NOT_FOUND.exception("위스키를 찾을 수 없습니다."));
@@ -93,13 +90,15 @@ public class AdminWhiskeyService {
         whiskeyRepository.deleteById(id);
     }
 
-    public WhiskeyResponseDto findById(Long id) {
+    public WhiskeyInfo findById(Long id) {
         Whiskey whiskey = whiskeyRepository.findById(id).orElseThrow(() -> ErrorCode.NOT_FOUND.exception("위스키를 찾을 수 없습니다."));
-        return WhiskeyResponseDto.from(whiskey);
+        return WhiskeyInfo.from(whiskey);
     }
 
-    public List<WhiskeyResponseDto> searchWhiskeys(@Valid WhiskeySearchDto whiskeyDto) {
+    public List<WhiskeyInfo> searchWhiskeys(@Valid WhiskeySearchCommand whiskeyDto) {
         List<Whiskey> whiskeys = whiskeyRepository.searchWhiskeys(whiskeyDto);
-        return WhiskeyResponseDto.from(whiskeys);
+        return whiskeys.stream()
+            .map(WhiskeyInfo::from)
+            .toList();
     }
 }

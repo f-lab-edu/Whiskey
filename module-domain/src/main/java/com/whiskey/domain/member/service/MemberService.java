@@ -1,23 +1,15 @@
-package com.whiskey.member.service;
+package com.whiskey.domain.member.service;
 
-import com.whiskey.auth.dto.LoginRequest;
-import com.whiskey.domain.auth.JwtResponse;
-import com.whiskey.domain.auth.MemberInfo;
 import com.whiskey.domain.member.Member;
+import com.whiskey.domain.member.dto.MemberInfo;
 import com.whiskey.domain.member.enums.MemberStatus;
 import com.whiskey.dto.ValidationErrorValue;
 import com.whiskey.exception.ErrorCode;
-import com.whiskey.member.dto.MemberRegisterValue;
-import com.whiskey.member.dto.MemberResponse;
-import com.whiskey.member.repository.MemberRepository;
-import com.whiskey.security.jwt.JwtTokenProvider;
+import com.whiskey.domain.member.repository.MemberRepository;
 import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -31,18 +23,18 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public void signup(MemberRegisterValue memberDto) {
+    public void signup(String email, String password, String memberName) {
         // 회원가입 약관동의 체크 확인
 
         // 중복가입 체크
-        checkDuplicate(memberDto.email());
+        checkDuplicate(email);
 
         try {
-            String encryptPassword = passwordEncoder.encode(memberDto.password());
+            String encryptPassword = passwordEncoder.encode(password);
             Member member = Member.builder()
                 .passwordHash(encryptPassword)
-                .memberName(memberDto.memberName())
-                .email(memberDto.email())
+                .memberName(memberName)
+                .email(email)
                 .status(MemberStatus.ACTIVE)
                 .build();
 
@@ -60,8 +52,12 @@ public class MemberService {
         }
     }
 
-    public MemberResponse getMemberById(Long id) {
+    public MemberInfo getMemberById(Long id) {
         Member member = memberRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
-        return MemberResponse.from(member);
+        return new MemberInfo(
+            member.getId(),
+            member.getMemberName(),
+            member.getEmail()
+        );
     }
 }
