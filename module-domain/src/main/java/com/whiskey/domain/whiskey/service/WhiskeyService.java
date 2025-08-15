@@ -56,7 +56,7 @@ public class WhiskeyService {
     }
 
     @Transactional
-    public void update(Long id, @Valid WhiskeyCommand whiskeyDto) {
+    public void update(Long id, WhiskeyCommand whiskeyDto) {
         checkDuplicate(whiskeyDto);
 
         Whiskey whiskey = whiskeyRepository.findById(id).orElseThrow(() -> ErrorCode.NOT_FOUND.exception("위스키를 찾을 수 없습니다."));
@@ -95,7 +95,7 @@ public class WhiskeyService {
         return WhiskeyInfo.from(whiskey);
     }
 
-    public List<WhiskeyInfo> searchWhiskeys(@Valid WhiskeySearchCondition whiskeyDto) {
+    public List<WhiskeyInfo> searchWhiskeys(WhiskeySearchCondition whiskeyDto) {
         List<Whiskey> whiskeys = whiskeyRepository.searchWhiskeys(whiskeyDto);
         return whiskeys.stream()
             .map(WhiskeyInfo::from)
