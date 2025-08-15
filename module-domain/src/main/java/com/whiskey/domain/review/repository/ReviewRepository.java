@@ -2,9 +2,10 @@ package com.whiskey.domain.review.repository;
 
 import com.whiskey.domain.review.Review;
 import java.util.List;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface ReviewRepository extends JpaRepository<Review, Long> {
+public interface ReviewRepository extends JpaRepository<Review, Long>, ReviewRepositoryCustom {
 
     boolean existsByWhiskeyIdAndMemberId(long whiskeyId, long memberId);
 

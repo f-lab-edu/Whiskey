@@ -4,6 +4,7 @@ import com.whiskey.domain.member.Member;
 import com.whiskey.domain.member.repository.MemberRepository;
 import com.whiskey.domain.review.Review;
 import com.whiskey.domain.review.dto.ReviewCommand;
+import com.whiskey.domain.review.dto.ReviewInfo;
 import com.whiskey.domain.review.repository.ReviewRepository;
 import com.whiskey.domain.whiskey.Whiskey;
 import com.whiskey.domain.whiskey.repository.WhiskeyRepository;
@@ -12,6 +13,8 @@ import jakarta.transaction.Transactional;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -62,5 +65,10 @@ public class ReviewService {
 
             whiskey.updateRating(avgRating, reviews.size());
         }
+    }
+
+    public Page<ReviewInfo> reviews(long whiskeyId, Pageable pageable) {
+        Page<Review> reviews = reviewRepository.reviews(whiskeyId, pageable);
+        return reviews.map(ReviewInfo::from);
     }
 }
