@@ -9,6 +9,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Version;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -55,6 +56,15 @@ public class Whiskey extends BaseEntity {
     @JoinColumn(name = "whiskey_id")
     private List<Cask> casks = new ArrayList<>();
 
+    @Column(name = "avg_rating")
+    private double avgRating;
+
+    @Column(name = "review_count")
+    private int reviewCount;
+
+    @Version
+    private long version;
+
     @Builder
     public Whiskey(String distillery, String name, String country, Integer age, int volume, MaltType maltType, double abv, String description) {
         this.distillery = distillery;
@@ -71,5 +81,10 @@ public class Whiskey extends BaseEntity {
         if(casks != null && !casks.isEmpty()) {
             this.casks.addAll(casks);
         }
+    }
+
+    public void updateRating(double avgRating, int reviewCount) {
+        this.avgRating = avgRating;
+        this.reviewCount = reviewCount;
     }
 }
