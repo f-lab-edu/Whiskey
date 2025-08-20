@@ -26,6 +26,8 @@ public class ReviewService {
     private final WhiskeyRepository whiskeyRepository;
     private final MemberRepository memberRepository;
 
+    private final RatingService ratingService;
+
     @Transactional
     public void register(ReviewCommand reviewDto) {
         Member member = memberRepository.findById(reviewDto.memberId())
@@ -48,7 +50,8 @@ public class ReviewService {
 
         reviewRepository.save(review);
 
-        updateWhiskeyRating(whiskey);
+//        updateWhiskeyRating(whiskey);
+        ratingService.addReview(whiskey.getId(), reviewDto.starRate());
     }
 
     private void updateWhiskeyRating(Whiskey whiskey) {
