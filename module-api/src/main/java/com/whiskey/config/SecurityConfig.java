@@ -41,11 +41,12 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.POST, "/api/auth/token/refresh").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/members/{id}").hasRole("USER")
                     .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/admin/whiskey").hasRole("ADMIN")
-                    .requestMatchers(HttpMethod.PUT,"/api/admin/whiskey/*").hasRole("ADMIN")
-                    .requestMatchers(HttpMethod.DELETE, "/api/admin/whiskey/*").hasRole("ADMIN")
-                    .requestMatchers(HttpMethod.GET, "/api/admin/whiskey/*").hasRole("ADMIN")
-                    .requestMatchers(HttpMethod.GET, "/api/admin/whiskey").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.POST, "/api/whiskey").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.PUT,"/api/whiskey/*").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.DELETE, "/api/whiskey/*").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.GET, "/api/whiskey/*").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.GET, "/api/whiskey").hasRole("ADMIN")
+                    .requestMatchers(HttpMethod.POST, "/api/review").hasRole("USER")
                     .anyRequest().authenticated()
                 ).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         }
