@@ -1,9 +1,12 @@
 package com.whiskey.whiskey.controller;
 
+import com.whiskey.domain.review.dto.ReviewInfo;
+import com.whiskey.domain.review.service.ReviewService;
 import com.whiskey.domain.whiskey.dto.CaskCommand;
 import com.whiskey.domain.whiskey.dto.WhiskeyInfo;
 import com.whiskey.domain.whiskey.dto.WhiskeyCommand;
 import com.whiskey.domain.whiskey.dto.WhiskeySearchCondition;
+import com.whiskey.whiskey.dto.ReviewResponse;
 import com.whiskey.whiskey.dto.WhiskeyRegisterRequest;
 import com.whiskey.whiskey.dto.WhiskeyResponse;
 import com.whiskey.whiskey.dto.WhiskeySearchRequest;
@@ -16,6 +19,10 @@ import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,6 +30,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -32,6 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class WhiskeyController {
 
     private final WhiskeyService whiskeyService;
+    private final ReviewService reviewService;
 
 //    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/whiskey")
@@ -108,5 +117,14 @@ public class WhiskeyController {
         List<WhiskeyInfo> whiskeys = whiskeyService.searchWhiskeys(condition);
         List<WhiskeyResponse> responses = WhiskeyResponse.from(whiskeys);
         return ApiResponse.success("위스키 목록을 조회하였습니다.", responses);
+    }
+
+    @GetMapping("/whiskey/{id}/reviews")
+    public ApiResponse<Page<ReviewResponse>> reviews(@PathVariable("id") Long id, @RequestParam(name = "page", defaultValue = "0") int page, @RequestParam(name = "size", defaultValue = "10") int size, @RequestParam(name = "sort", defaultValue = "desc") String sort) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sort));
+
+        Page<ReviewInfo> reviews = reviewService.reviews(id, pageable);
+        Page<ReviewResponse> responses = reviews.map(ReviewResponse::from);
+        return ApiResponse.success("리뷰 목록을 조회하였습니다.", responses);
     }
 }

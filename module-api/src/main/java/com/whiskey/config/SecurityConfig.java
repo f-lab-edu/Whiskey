@@ -37,7 +37,8 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.DELETE, "/api/whiskey/*").hasRole("ADMIN")
                     .requestMatchers(HttpMethod.GET, "/api/whiskey/*").hasRole("ADMIN")
                     .requestMatchers(HttpMethod.GET, "/api/whiskey").hasRole("ADMIN")
-            ).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                    .requestMatchers(HttpMethod.POST, "/api/review").hasRole("USER")
+                ).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
