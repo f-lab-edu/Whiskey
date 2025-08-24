@@ -1,5 +1,6 @@
 package com.whiskey.review.controller;
 
+import com.whiskey.annotation.CurrentMemberId;
 import com.whiskey.domain.review.dto.ReviewCommand;
 import com.whiskey.domain.review.service.ReviewService;
 import com.whiskey.response.ApiResponse;
@@ -8,8 +9,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,10 +24,7 @@ public class ReviewController {
 
     @PostMapping("/review")
     @Operation(summary = "위스키 리뷰 등록", description = "위스키 리뷰를 등록합니다.")
-    public ApiResponse<Void> register(@Valid @RequestBody ReviewRegisterRequest reviewDto) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Long memberId = Long.parseLong(authentication.getName());
-
+    public ApiResponse<Void> register(@Valid @RequestBody ReviewRegisterRequest reviewDto, @CurrentMemberId Long memberId) {
         ReviewCommand command = new ReviewCommand(
             reviewDto.whiskeyId(),
             memberId,
