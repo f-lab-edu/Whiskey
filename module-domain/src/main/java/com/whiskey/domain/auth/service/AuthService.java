@@ -31,10 +31,13 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final TokenService tokenService;
 
     public JwtResponse login(String email, String password) {
         try {
             Member member = authenticateMember(email, password);
+
+            tokenService.invalidate(member.getId());
 
             List<SimpleGrantedAuthority> authorities = List.of(
                 new SimpleGrantedAuthority("ROLE_USER")
@@ -43,15 +46,12 @@ public class AuthService {
             String accessToken = jwtTokenProvider.generateToken(member.getId(), authorities);
             String refreshToken = jwtTokenProvider.generateRefreshToken(member.getId());
 
+            tokenService.registerActiveToken(member.getId(), accessToken);
+
             Long expireTime = jwtTokenProvider.getAccessTokenValidityTime();
             MemberInfo memberInfo = MemberInfo.from(member);
 
-            checkRefreshToken(
-                member.getId(),
-                refreshToken,
-                jwtTokenProvider.getRefreshTokenValidityTime()
-            );
-
+            checkRefreshToken(member.getId(), refreshToken, jwtTokenProvider.getRefreshTokenValidityTime());
             return new JwtResponse(accessToken, refreshToken, "Bearer", expireTime, memberInfo);
         }
         catch(Exception e) {
