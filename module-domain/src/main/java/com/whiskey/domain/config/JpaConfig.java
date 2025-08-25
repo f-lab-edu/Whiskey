@@ -1,4 +1,4 @@
-package com.whiskey.config;
+package com.whiskey.domain.config;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
