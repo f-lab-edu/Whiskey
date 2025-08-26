@@ -85,7 +85,7 @@ public class AuthService {
         );
     }
 
-    public boolean isValid(Long memberId, String token) {
+    public boolean isValidRefreshToken(Long memberId, String token) {
         Optional<RefreshToken> returnToken = refreshTokenRepository.findByMemberId(memberId);
 
         if(returnToken.isPresent()) {
@@ -100,10 +100,14 @@ public class AuthService {
         return false;
     }
 
+    public boolean isValidAccessToken(String token) {
+        return jwtTokenProvider.validateToken(token) && !tokenService.isBlackListed(token);
+    }
+
     public TokenInfo refreshAccessToken(String refreshToken) {
         Long memberId = jwtTokenProvider.getMemberIdFromRefreshToken(refreshToken);
 
-        boolean isValid = isValid(memberId, refreshToken);
+        boolean isValid = isValidRefreshToken(memberId, refreshToken);
         if(!isValid) {
             throw ErrorCode.UNAUTHORIZED.exception("Refresh token이 유효하지 않습니다.");
         }
