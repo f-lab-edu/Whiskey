@@ -10,7 +10,6 @@ import com.whiskey.domain.whiskey.Whiskey;
 import com.whiskey.domain.whiskey.repository.WhiskeyRepository;
 import com.whiskey.exception.ErrorCode;
 import jakarta.transaction.Transactional;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -30,11 +29,8 @@ public class ReviewService {
 
     @Transactional
     public void register(ReviewCommand reviewDto) {
-        Member member = memberRepository.findById(reviewDto.memberId())
-            .orElseThrow(() -> ErrorCode.NOT_FOUND.exception("존재하지 않는 회원입니다."));
-
-        Whiskey whiskey = whiskeyRepository.findById(reviewDto.whiskeyId())
-            .orElseThrow(() -> ErrorCode.NOT_FOUND.exception("존재하지 않는 위스키입니다."));
+        Member member = checkExistMember(reviewDto.memberId());
+        Whiskey whiskey = checkExistWhiskey(reviewDto.whiskeyId());
 
         boolean check = reviewRepository.existsByWhiskeyIdAndMemberId(whiskey.getId(), reviewDto.memberId());
         if (check) {
@@ -49,29 +45,37 @@ public class ReviewService {
             .build();
 
         reviewRepository.save(review);
-
-//        updateWhiskeyRating(whiskey);
-        ratingService.addReview(whiskey.getId(), reviewDto.starRate());
-    }
-
-    private void updateWhiskeyRating(Whiskey whiskey) {
-        List<Review> reviews = reviewRepository.findByWhiskeyId(whiskey.getId());
-
-        if(reviews.isEmpty()) {
-            whiskey.updateRating(0.0, 0);
-        }
-        else {
-            double avgRating = reviews.stream()
-                .mapToInt(Review::getStarRate)
-                .average()
-                .orElse(0.0);
-
-            whiskey.updateRating(avgRating, reviews.size());
-        }
+        ratingService.addReview(whiskey.getId(), member.getId(), reviewDto.starRate());
     }
 
     public Page<ReviewInfo> reviews(long whiskeyId, Pageable pageable) {
         Page<Review> reviews = reviewRepository.reviews(whiskeyId, pageable);
         return reviews.map(ReviewInfo::from);
+    }
+
+    @Transactional
+    public void update(long id, ReviewCommand reviewDto) {
+        Member member = checkExistMember(reviewDto.memberId());
+        Whiskey whiskey = checkExistWhiskey(reviewDto.whiskeyId());
+
+        boolean check = reviewRepository.existsByWhiskeyIdAndMemberId(whiskey.getId(), reviewDto.memberId());
+        if (!check) {
+            throw ErrorCode.CONFLICT.exception("등록하신 리뷰가 없습니다.");
+        }
+
+        Review review = reviewRepository.findById(id).orElseThrow(() -> ErrorCode.NOT_FOUND.exception("리뷰를 찾을 수 없습니다."));
+
+        review.setStarRate(reviewDto.starRate());
+        review.setContent(reviewDto.content());
+
+        ratingService.updateReview(id, member.getId(), reviewDto.starRate());
+    }
+
+    private Member checkExistMember(long memberId) {
+        return memberRepository.findById(memberId).orElseThrow(() -> ErrorCode.NOT_FOUND.exception("존재하지 않는 회원입니다."));
+    }
+
+    private Whiskey checkExistWhiskey(long whiskeyId) {
+        return whiskeyRepository.findById(whiskeyId).orElseThrow(() -> ErrorCode.NOT_FOUND.exception("존재하지 않는 위스키입니다."));
     }
 }
