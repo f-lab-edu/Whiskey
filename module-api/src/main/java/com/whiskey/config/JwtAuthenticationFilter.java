@@ -1,5 +1,6 @@
 package com.whiskey.config;
 
+import com.whiskey.domain.auth.service.AuthService;
 import com.whiskey.security.jwt.JwtTokenProvider;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -32,6 +33,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private String jwtBypassToken;
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final AuthService authService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -53,7 +55,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = getToken(request);
 
-        if(token != null && jwtTokenProvider.validateToken(token)) {
+        if(token != null && authService.isValidAccessToken(token)) {
             Authentication auth = jwtTokenProvider.getAuthentication(token);
             SecurityContextHolder.getContext().setAuthentication(auth);
         }
