@@ -1,5 +1,6 @@
 package com.whiskey.domain.review.service;
 
+import com.whiskey.domain.event.ReviewRegisteredEvent;
 import com.whiskey.domain.member.Member;
 import com.whiskey.domain.member.repository.MemberRepository;
 import com.whiskey.domain.review.Review;
@@ -12,6 +13,7 @@ import com.whiskey.exception.ErrorCode;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -26,6 +28,7 @@ public class ReviewService {
     private final MemberRepository memberRepository;
 
     private final RatingService ratingService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public void register(ReviewCommand reviewDto) {
@@ -69,6 +72,7 @@ public class ReviewService {
         review.setContent(reviewDto.content());
 
         ratingService.updateReview(id, member.getId(), reviewDto.starRate());
+        eventPublisher.publishEvent(new ReviewRegisteredEvent(whiskey.getId(), reviewDto.starRate()));
     }
 
     private Member checkExistMember(long memberId) {
