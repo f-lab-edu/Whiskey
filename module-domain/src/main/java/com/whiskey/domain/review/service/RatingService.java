@@ -17,7 +17,7 @@ public class RatingService {
     private static final String USER_REVIEW_KEY = "whiskey:%d:user:%d";
 
     @Retryable(value = {Exception.class}, maxAttempts = 5, backoff = @Backoff(delay = 1000))
-    public void addReview(Long whiskeyId, int rating) {
+    public void addReview(long whiskeyId, long memberId, int rating) {
         String ratingSumKey = String.format(RATING_SUM_KEY, whiskeyId);
         String userReviewKey = String.format(USER_REVIEW_KEY, whiskeyId, memberId);
         String reviewCountKey = String.format(REVIEW_COUNT_KEY, whiskeyId);
