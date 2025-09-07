@@ -17,6 +17,6 @@ public class ReviewEventListener {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleReviewRegistered(ReviewRegisteredEvent event) {
-        ratingService.addReview(event.whiskeyId(), event.starRate());
+        ratingService.addReview(event.whiskeyId(), event.memberId(), event.starRate());
     }
 }

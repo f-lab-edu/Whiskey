@@ -1,5 +1,6 @@
 package com.whiskey.config;
 
+import com.whiskey.domain.user.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,14 +31,15 @@ public class SecurityConfig {
                     .requestMatchers("/swagger-ui/**", "/swagger-resources/**", "/v3/api-docs/**", "/v3/api-docs").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/members").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/auth/token/refresh").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/members/{id}").hasRole("USER")
+                    .requestMatchers(HttpMethod.GET, "/api/members/{id}").hasRole(Role.ADMIN.getRole())
                     .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/whiskey").hasRole("ADMIN")
-                    .requestMatchers(HttpMethod.PUT,"/api/whiskey/*").hasRole("ADMIN")
-                    .requestMatchers(HttpMethod.DELETE, "/api/whiskey/*").hasRole("ADMIN")
-                    .requestMatchers(HttpMethod.GET, "/api/whiskey/*").hasRole("ADMIN")
-                    .requestMatchers(HttpMethod.GET, "/api/whiskey").hasRole("ADMIN")
-                    .requestMatchers(HttpMethod.POST, "/api/review").hasRole("USER")
+                    .requestMatchers(HttpMethod.POST, "/api/whiskey").hasRole(Role.ADMIN.getRole())
+                    .requestMatchers(HttpMethod.PUT,"/api/whiskey/*").hasRole(Role.ADMIN.getRole())
+                    .requestMatchers(HttpMethod.DELETE, "/api/whiskey/*").hasRole(Role.ADMIN.getRole())
+                    .requestMatchers(HttpMethod.GET, "/api/whiskey/*").hasRole(Role.ADMIN.getRole())
+                    .requestMatchers(HttpMethod.GET, "/api/whiskey").hasRole(Role.ADMIN.getRole())
+                    .requestMatchers(HttpMethod.POST, "/api/review").hasRole(Role.ADMIN.getRole())
+                    .requestMatchers(HttpMethod.GET, "/api/review/{id}/reviews").hasRole(Role.ADMIN.getRole())
                 ).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

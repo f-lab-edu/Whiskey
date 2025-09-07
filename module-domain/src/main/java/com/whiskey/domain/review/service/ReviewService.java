@@ -72,7 +72,7 @@ public class ReviewService {
         review.setContent(reviewDto.content());
 
         ratingService.updateReview(id, member.getId(), reviewDto.starRate());
-        eventPublisher.publishEvent(new ReviewRegisteredEvent(whiskey.getId(), reviewDto.starRate()));
+        eventPublisher.publishEvent(new ReviewRegisteredEvent(whiskey.getId(), member.getId(), reviewDto.starRate()));
     }
 
     private Member checkExistMember(long memberId) {
