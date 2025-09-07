@@ -14,14 +14,31 @@ public class RatingService {
 
     private static final String RATING_SUM_KEY = "whiskey:%d:rating_sum";
     private static final String REVIEW_COUNT_KEY = "whiskey:%d:review_count";
+    private static final String USER_REVIEW_KEY = "whiskey:%d:user:%d";
 
     @Retryable(value = {Exception.class}, maxAttempts = 5, backoff = @Backoff(delay = 1000))
     public void addReview(Long whiskeyId, int rating) {
         String ratingSumKey = String.format(RATING_SUM_KEY, whiskeyId);
+        String userReviewKey = String.format(USER_REVIEW_KEY, whiskeyId, memberId);
         String reviewCountKey = String.format(REVIEW_COUNT_KEY, whiskeyId);
 
         stringRedisTemplate.opsForValue().increment(ratingSumKey, rating);
         stringRedisTemplate.opsForValue().increment(reviewCountKey, 1);
+        stringRedisTemplate.opsForValue().set(userReviewKey, String.valueOf(rating));
+    }
+
+    public void updateReview(long whiskeyId, long memberId, int newRating) {
+        String ratingSumKey = String.format(RATING_SUM_KEY, whiskeyId);
+        String userReviewKey = String.format(USER_REVIEW_KEY, whiskeyId, memberId);
+
+        String oldRating = stringRedisTemplate.opsForValue().get(userReviewKey);
+
+        if(oldRating != null) {
+            int difference = newRating - Integer.parseInt(oldRating);
+            stringRedisTemplate.opsForValue().increment(ratingSumKey, difference);
+        }
+
+        stringRedisTemplate.opsForValue().set(userReviewKey, String.valueOf(newRating));
     }
 
     public void removeReview(Long whiskeyId, int rating) {
