@@ -1,5 +1,6 @@
 package com.whiskey.domain.review.service;
 
+import com.whiskey.domain.event.ReviewRegisteredEvent;
 import com.whiskey.domain.member.Member;
 import com.whiskey.domain.member.repository.MemberRepository;
 import com.whiskey.domain.review.Review;
@@ -13,6 +14,7 @@ import jakarta.transaction.Transactional;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,7 @@ public class ReviewService {
     private final MemberRepository memberRepository;
 
     private final RatingService ratingService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public void register(ReviewCommand reviewDto) {
@@ -49,25 +52,7 @@ public class ReviewService {
             .build();
 
         reviewRepository.save(review);
-
-//        updateWhiskeyRating(whiskey);
-        ratingService.addReview(whiskey.getId(), reviewDto.starRate());
-    }
-
-    private void updateWhiskeyRating(Whiskey whiskey) {
-        List<Review> reviews = reviewRepository.findByWhiskeyId(whiskey.getId());
-
-        if(reviews.isEmpty()) {
-            whiskey.updateRating(0.0, 0);
-        }
-        else {
-            double avgRating = reviews.stream()
-                .mapToInt(Review::getStarRate)
-                .average()
-                .orElse(0.0);
-
-            whiskey.updateRating(avgRating, reviews.size());
-        }
+        eventPublisher.publishEvent(new ReviewRegisteredEvent(whiskey.getId(), reviewDto.starRate()));
     }
 
     public Page<ReviewInfo> reviews(long whiskeyId, Pageable pageable) {

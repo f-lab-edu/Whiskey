@@ -2,6 +2,8 @@ package com.whiskey.domain.review.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -13,6 +15,7 @@ public class RatingService {
     private static final String RATING_SUM_KEY = "whiskey:%d:rating_sum";
     private static final String REVIEW_COUNT_KEY = "whiskey:%d:review_count";
 
+    @Retryable(value = {Exception.class}, maxAttempts = 5, backoff = @Backoff(delay = 1000))
     public void addReview(Long whiskeyId, int rating) {
         String ratingSumKey = String.format(RATING_SUM_KEY, whiskeyId);
         String reviewCountKey = String.format(REVIEW_COUNT_KEY, whiskeyId);
