@@ -1,0 +1,4 @@
+dev:
+  enabled: true
+  header-name: bypass-jwt-auth
+  token: whisKey-dev
