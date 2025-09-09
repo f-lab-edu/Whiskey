@@ -16,4 +16,9 @@ public class TestController {
         response.put("status", "success");
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/api/test/member-id-check")
+    public ResponseEntity<Long> memberIdCheck(@CurrentMemberId Long memberId) {
+        return ResponseEntity.ok(memberId);
+    }
 }

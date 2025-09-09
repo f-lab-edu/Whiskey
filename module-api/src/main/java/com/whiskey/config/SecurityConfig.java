@@ -41,6 +41,7 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.POST, "/api/review").hasRole(Role.ADMIN.getRole())
                     .requestMatchers(HttpMethod.GET, "/api/whiskey/{id}/reviews").hasRole(Role.ADMIN.getRole())
                     .requestMatchers(HttpMethod.GET, "/api/test").hasRole(Role.ADMIN.getRole())
+                    .requestMatchers("/api/test/**").permitAll()
                 ).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
