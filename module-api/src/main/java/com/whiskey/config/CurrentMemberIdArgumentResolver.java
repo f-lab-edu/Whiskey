@@ -26,7 +26,7 @@ public class CurrentMemberIdArgumentResolver implements HandlerMethodArgumentRes
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if(authentication == null || !authentication.isAuthenticated()) {
+        if(authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getName())) {
             throw ErrorCode.UNAUTHORIZED.exception("인증에 실패했습니다.");
         }
 
