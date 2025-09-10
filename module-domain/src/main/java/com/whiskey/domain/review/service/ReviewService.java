@@ -5,12 +5,17 @@ import com.whiskey.domain.member.Member;
 import com.whiskey.domain.member.repository.MemberRepository;
 import com.whiskey.domain.review.Review;
 import com.whiskey.domain.review.dto.ReviewCommand;
+import com.whiskey.domain.review.dto.ReviewCursorRequest;
+import com.whiskey.domain.review.dto.ReviewCursorResponse;
 import com.whiskey.domain.review.dto.ReviewInfo;
 import com.whiskey.domain.review.repository.ReviewRepository;
 import com.whiskey.domain.whiskey.Whiskey;
 import com.whiskey.domain.whiskey.repository.WhiskeyRepository;
 import com.whiskey.exception.ErrorCode;
 import jakarta.transaction.Transactional;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -54,6 +59,31 @@ public class ReviewService {
     public Page<ReviewInfo> reviews(long whiskeyId, Pageable pageable) {
         Page<Review> reviews = reviewRepository.reviews(whiskeyId, pageable);
         return reviews.map(ReviewInfo::from);
+    }
+
+    public ReviewCursorResponse<ReviewInfo> getLatestReviews(long whiskeyId, ReviewCursorRequest reviewRequest) {
+        Long cursorId = null;
+
+        if(reviewRequest.cursor() != null) {
+            cursorId = Long.parseLong(reviewRequest.cursor());
+        }
+
+        List<Review> reviews = reviewRepository.findLatestReviews(whiskeyId, cursorId, reviewRequest.size());
+
+        boolean hasNext = reviews.size() > reviewRequest.size();
+        if(hasNext) {
+            reviews.remove(reviews.size() - 1);
+        }
+
+        String nextCursor = null;
+        if(hasNext && !reviews.isEmpty()) {
+            Review lastReview = reviews.get(reviews.size() - 1);
+            nextCursor = String.valueOf(lastReview.getId());
+        }
+
+        List<ReviewInfo> reviewInfos = reviews.stream().map(ReviewInfo::from).collect(Collectors.toList());
+
+        return ReviewCursorResponse.of(reviewInfos, nextCursor, hasNext);
     }
 
     @Transactional
