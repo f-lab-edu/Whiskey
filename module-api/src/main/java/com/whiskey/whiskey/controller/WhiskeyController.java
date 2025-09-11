@@ -123,15 +123,6 @@ public class WhiskeyController {
     }
 
     @GetMapping("/whiskey/{id}/reviews")
-    public ApiResponse<Page<ReviewResponse>> reviews(@PathVariable("id") Long id, @RequestParam(name = "page", defaultValue = "0") int page, @RequestParam(name = "size", defaultValue = "10") int size, @RequestParam(name = "sort", defaultValue = "desc") String sort) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sort));
-
-        Page<ReviewInfo> reviews = reviewService.reviews(id, pageable);
-        Page<ReviewResponse> responses = reviews.map(ReviewResponse::from);
-        return ApiResponse.success("리뷰 목록을 조회하였습니다.", responses);
-    }
-
-    @GetMapping("/whiskey/{id}/reviews")
     public ApiResponse<ReviewCursorResponse<ReviewResponse>> reviews(
         @PathVariable("id") Long id,
         @RequestParam(name = "cursor", required = false) String cursor,
