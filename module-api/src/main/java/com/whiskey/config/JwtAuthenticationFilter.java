@@ -41,7 +41,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String devToken = request.getHeader(jwtBypassHeaderName);
             if(jwtBypassToken.equals(devToken)) {
 
-                Authentication devAuth = new UsernamePasswordAuthenticationToken("dev-user", null, Arrays.asList(
+                Authentication devAuth = new UsernamePasswordAuthenticationToken(3, null, Arrays.asList(
                     new SimpleGrantedAuthority("ROLE_USER"),
                     new SimpleGrantedAuthority("ROLE_ADMIN")
                 ));
