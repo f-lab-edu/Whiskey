@@ -27,6 +27,8 @@ public class ReviewReader implements ItemReader<ReviewBatchRequest> {
     private final Queue<ReviewBatchRequest> reviewQueue;
     private boolean initialized = false;
 
+    private final Random random = new Random();
+
     public ReviewReader() {
         this.reviewQueue = new LinkedList<>();
     }
@@ -46,7 +48,6 @@ public class ReviewReader implements ItemReader<ReviewBatchRequest> {
 
         // 3L은 개발자 계정
         List<Long> memberIds = Arrays.asList(1L, 2L, 4L, 5L, 6L, 7L, 8L, 9L, 10L, 11L);
-        Random random = new Random();
 
         for(Long whiskeyId : whiskeyIds) {
             Collections.shuffle(memberIds);
@@ -71,7 +72,6 @@ public class ReviewReader implements ItemReader<ReviewBatchRequest> {
         }
 
         Collections.shuffle(whiskeyIds);
-        Random random = new Random();
         int count = Math.min(random.nextInt(2) + 2, whiskeyIds.size());
         return whiskeyIds.subList(0, count);
     }
