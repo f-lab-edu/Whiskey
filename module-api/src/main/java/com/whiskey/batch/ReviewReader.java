@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ItemReader;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -21,7 +22,10 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class ReviewReader implements ItemReader<ReviewBatchRequest> {
 
+    @Autowired
     private WhiskeyRepository whiskeyRepository;
+
+    @Autowired
     private MemberRepository memberRepository;
 
     private final Queue<ReviewBatchRequest> reviewQueue;

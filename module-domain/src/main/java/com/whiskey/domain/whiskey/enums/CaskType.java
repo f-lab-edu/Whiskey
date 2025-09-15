@@ -8,7 +8,11 @@ public enum CaskType {
     PORT("PORT"),
     BOURBON("BOURBON"),
     RUM("RUM"),
-    MIZUNARA("MIZUNARA"),;
+    MIZUNARA("MIZUNARA"),
+    AMERICAN_OAK("AMERICAN_OAK"),
+    FRENCH_OAK("FRENCH_OAK"),
+    PEDRO_XIMENEZ("PEDRO_XIMENEZ"),
+    OLOROSO("OLOROSO");
 
     private final String value;
 
