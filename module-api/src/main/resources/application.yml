@@ -20,7 +20,7 @@ spring:
     job:
       enabled: false
     jdbc:
-      initilaize-schema: always
+      initialize-schema: always
 jwt:
   secret-key: 0VFd9UZwXwLVaX40nCLLGuqyx6tcWzGz+KGHpDz9G+xTVOfNLlqbh4YqfKbzzKDQl94OCqP1MLm6dNuLJdY8qg==
   access-token-validity: 600000  # 10분
