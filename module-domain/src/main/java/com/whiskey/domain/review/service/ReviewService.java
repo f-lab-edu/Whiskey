@@ -85,13 +85,15 @@ public class ReviewService {
     public void update(long id, ReviewCommand reviewDto) {
         Member member = checkExistMember(reviewDto.memberId());
         Whiskey whiskey = checkExistWhiskey(reviewDto.whiskeyId());
+        Review review = checkExistReview(id);
 
-        boolean check = reviewRepository.existsByWhiskeyIdAndMemberId(whiskey.getId(), reviewDto.memberId());
-        if (!check) {
-            throw ErrorCode.CONFLICT.exception("등록하신 리뷰가 없습니다.");
+        if(!review.getMember().getId().equals(reviewDto.memberId())) {
+            throw ErrorCode.UNAUTHORIZED.exception("본인의 리뷰만 수정가능합니다.");
         }
 
-        Review review = reviewRepository.findById(id).orElseThrow(() -> ErrorCode.NOT_FOUND.exception("리뷰를 찾을 수 없습니다."));
+        if(!whiskey.getId().equals(reviewDto.whiskeyId())) {
+            throw ErrorCode.NOT_FOUND.exception("잘못된 위스키 정보입니다.");
+        }
 
         review.setStarRate(reviewDto.starRate());
         review.setContent(reviewDto.content());
@@ -100,11 +102,22 @@ public class ReviewService {
         eventPublisher.publishEvent(new ReviewRegisteredEvent(whiskey.getId(), member.getId(), reviewDto.starRate()));
     }
 
+    @Transactional
+    public void delete(Long id, Long memberId) {
+        if(!reviewRepository.existsByWhiskeyIdAndMemberId(id, memberId)) {
+            throw ErrorCode.NOT_FOUND.exception("작성하신 리뷰가 없습니다.");
+        }
+    }
+
     private Member checkExistMember(long memberId) {
         return memberRepository.findById(memberId).orElseThrow(() -> ErrorCode.NOT_FOUND.exception("존재하지 않는 회원입니다."));
     }
 
     private Whiskey checkExistWhiskey(long whiskeyId) {
         return whiskeyRepository.findById(whiskeyId).orElseThrow(() -> ErrorCode.NOT_FOUND.exception("존재하지 않는 위스키입니다."));
+    }
+
+    private Review checkExistReview(long reviewId) {
+        return reviewRepository.findById(reviewId).orElseThrow(() -> ErrorCode.NOT_FOUND.exception("리뷰를 찾을 수 없습니다."));
     }
 }
