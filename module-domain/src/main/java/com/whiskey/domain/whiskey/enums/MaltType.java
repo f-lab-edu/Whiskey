@@ -5,7 +5,11 @@ import lombok.Getter;
 @Getter
 public enum MaltType {
     SINGLE_MALT("SINGLE_MALT"),
-    BLENDED("BLENDED");
+    BLENDED("BLENDED"),
+    TENNESSEE_WHISKEY("TENNESSEE_WHISKEY"),
+    BOURBON("BOURBON"),
+    RYE("RYE"),
+    CANADIAN("CANADIAN");
 
     private final String value;
 
