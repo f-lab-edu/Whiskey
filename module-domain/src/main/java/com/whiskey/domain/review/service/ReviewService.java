@@ -56,11 +56,6 @@ public class ReviewService {
         ratingService.addReview(whiskey.getId(), member.getId(), reviewDto.starRate());
     }
 
-    public Page<ReviewInfo> reviews(long whiskeyId, Pageable pageable) {
-        Page<Review> reviews = reviewRepository.reviews(whiskeyId, pageable);
-        return reviews.map(ReviewInfo::from);
-    }
-
     public ReviewCursorResponse<ReviewInfo> getLatestReviews(long whiskeyId, ReviewCursorRequest reviewRequest) {
         Long cursorId = null;
 

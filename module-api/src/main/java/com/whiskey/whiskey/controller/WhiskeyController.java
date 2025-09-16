@@ -126,7 +126,7 @@ public class WhiskeyController {
     public ApiResponse<ReviewCursorResponse<ReviewResponse>> reviews(
         @PathVariable("id") Long id,
         @RequestParam(name = "cursor", required = false) String cursor,
-        @RequestParam(name = "size", defaultValue = "10") int size) {
+        @RequestParam(name = "size", defaultValue = "7") int size) {
 
         ReviewCursorRequest reviewRequest = ReviewCursorRequest.of(cursor, size);
         ReviewCursorResponse<ReviewInfo> reviews = reviewService.getLatestReviews(id, reviewRequest);

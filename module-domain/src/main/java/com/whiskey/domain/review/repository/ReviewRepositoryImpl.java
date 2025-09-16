@@ -61,7 +61,7 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
             .where(review.whiskey.id.eq(whiskeyId));
 
         if(cursorId != null) {
-            query.where(review.id.eq(cursorId));
+            query.where(review.id.lt(cursorId));
         }
 
         return query.orderBy(review.id.desc()).limit(size + 1).fetch();
