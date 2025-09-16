@@ -41,7 +41,7 @@ public class RatingService {
         stringRedisTemplate.opsForValue().set(userReviewKey, String.valueOf(newRating));
     }
 
-    public void removeReview(Long whiskeyId, int rating) {
+    public void deleteReview(Long whiskeyId, int rating) {
         String ratingSumKey = String.format(RATING_SUM_KEY, whiskeyId);
         String reviewCountKey = String.format(REVIEW_COUNT_KEY, whiskeyId);
 

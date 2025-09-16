@@ -103,10 +103,16 @@ public class ReviewService {
     }
 
     @Transactional
-    public void delete(Long id, Long memberId) {
-        if(!reviewRepository.existsByWhiskeyIdAndMemberId(id, memberId)) {
-            throw ErrorCode.NOT_FOUND.exception("작성하신 리뷰가 없습니다.");
+    public void delete(long id, long memberId) {
+        Member member = checkExistMember(memberId);
+        Review review = checkExistReview(id);
+
+        if(!review.getMember().getId().equals(memberId)) {
+            throw ErrorCode.UNAUTHORIZED.exception("본인의 리뷰만 삭제가능합니다.");
         }
+
+        reviewRepository.deleteById(id);
+        // 리뷰 삭제 후, 평점 계산 추가
     }
 
     private Member checkExistMember(long memberId) {
