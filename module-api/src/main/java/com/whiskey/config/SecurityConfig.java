@@ -43,6 +43,7 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/api/whiskey/{id}/reviews").hasAnyRole(Role.ADMIN.getRole(), Role.USER.getRole())
                     .requestMatchers(HttpMethod.GET, "/api/test").hasAnyRole(Role.ADMIN.getRole(), Role.USER.getRole())
                     .requestMatchers("/api/test/**").permitAll()
+                    .requestMatchers("/api/batch/**").permitAll()
                 ).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
