@@ -27,42 +27,27 @@ public class RatingService {
         stringRedisTemplate.opsForValue().set(userReviewKey, String.valueOf(rating));
     }
 
-    public void updateReview(long whiskeyId, long memberId, int newRating) {
+    public void updateReview(long whiskeyId, long memberId, int oldRating, int newRating) {
         String ratingSumKey = String.format(RATING_SUM_KEY, whiskeyId);
         String userReviewKey = String.format(USER_REVIEW_KEY, whiskeyId, memberId);
 
-        String oldRating = stringRedisTemplate.opsForValue().get(userReviewKey);
-
-        if(oldRating != null) {
-            int difference = newRating - Integer.parseInt(oldRating);
-            stringRedisTemplate.opsForValue().increment(ratingSumKey, difference);
-        }
+        int difference = newRating - oldRating;
+        stringRedisTemplate.opsForValue().increment(ratingSumKey, difference);
 
         stringRedisTemplate.opsForValue().set(userReviewKey, String.valueOf(newRating));
     }
 
-    public void deleteReview(Long whiskeyId, int rating) {
+    public void deleteReview(long whiskeyId, long memberId) {
         String ratingSumKey = String.format(RATING_SUM_KEY, whiskeyId);
+        String userReviewKey = String.format(USER_REVIEW_KEY, whiskeyId, memberId);
         String reviewCountKey = String.format(REVIEW_COUNT_KEY, whiskeyId);
 
-        stringRedisTemplate.opsForValue().decrement(ratingSumKey, rating);
-        stringRedisTemplate.opsForValue().decrement(reviewCountKey, 1);
-    }
+        String oldRating = stringRedisTemplate.opsForValue().get(userReviewKey);
 
-    public double calculateAverageRating(Long whiskeyId) {
-        String ratingSumKey = String.format(RATING_SUM_KEY, whiskeyId);
-        String reviewCountKey = String.format(REVIEW_COUNT_KEY, whiskeyId);
-
-        String sum = stringRedisTemplate.opsForValue().get(ratingSumKey);
-        String count = stringRedisTemplate.opsForValue().get(reviewCountKey);
-
-        if(sum == null || count == null) {
-            return 0.0;
+        if(oldRating != null) {
+            stringRedisTemplate.opsForValue().decrement(ratingSumKey, Long.parseLong(oldRating));
+            stringRedisTemplate.opsForValue().decrement(reviewCountKey, 1);
+            stringRedisTemplate.delete(userReviewKey);
         }
-
-        long sumLong = Long.parseLong(sum);
-        long countLong = Long.parseLong(count);
-
-        return countLong > 0 ? Math.round((double) sumLong / countLong * 100.0) / 100.0 : 0.0;
     }
 }
