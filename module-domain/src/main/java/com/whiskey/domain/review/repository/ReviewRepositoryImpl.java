@@ -1,5 +1,6 @@
 package com.whiskey.domain.review.repository;
 
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.whiskey.domain.member.QMember;
 import com.whiskey.domain.review.QReview;
@@ -45,5 +46,24 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
             .fetchOne();
 
         return new PageImpl<>(reviews, pageable, total);
+    }
+
+    @Override
+    public List<Review> findLatestReviews(long whiskeyId, Long cursorId, int size) {
+        QReview review = QReview.review;
+        QMember member = QMember.member;
+        QWhiskey whiskey = QWhiskey.whiskey;
+
+        JPAQuery<Review> query = queryFactory
+            .selectFrom(review)
+            .join(review.member, member).fetchJoin()
+            .join(review.whiskey, whiskey).fetchJoin()
+            .where(review.whiskey.id.eq(whiskeyId));
+
+        if(cursorId != null) {
+            query.where(review.id.lt(cursorId));
+        }
+
+        return query.orderBy(review.id.desc()).limit(size + 1).fetch();
     }
 }

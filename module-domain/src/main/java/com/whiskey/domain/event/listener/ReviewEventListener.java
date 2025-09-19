@@ -1,6 +1,8 @@
 package com.whiskey.domain.event.listener;
 
+import com.whiskey.domain.event.ReviewDeletedEvent;
 import com.whiskey.domain.event.ReviewRegisteredEvent;
+import com.whiskey.domain.event.ReviewUpdatedEvent;
 import com.whiskey.domain.review.service.RatingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,5 +20,15 @@ public class ReviewEventListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleReviewRegistered(ReviewRegisteredEvent event) {
         ratingService.addReview(event.whiskeyId(), event.memberId(), event.starRate());
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleReviewDeleted(ReviewDeletedEvent event) {
+        ratingService.deleteReview(event.whiskeyId(), event.memberId());
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleReviewUpdated(ReviewUpdatedEvent event) {
+        ratingService.updateReview(event.whiskeyId(), event.memberId(), event.oldRating(), event.newRating());
     }
 }
