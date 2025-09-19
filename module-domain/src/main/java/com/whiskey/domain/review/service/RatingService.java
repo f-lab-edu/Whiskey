@@ -27,6 +27,7 @@ public class RatingService {
         stringRedisTemplate.opsForValue().set(userReviewKey, String.valueOf(rating));
     }
 
+    @Retryable(value = {Exception.class}, maxAttempts = 5, backoff = @Backoff(delay = 1000))
     public void updateReview(long whiskeyId, long memberId, int oldRating, int newRating) {
         String ratingSumKey = String.format(RATING_SUM_KEY, whiskeyId);
         String userReviewKey = String.format(USER_REVIEW_KEY, whiskeyId, memberId);
@@ -37,6 +38,7 @@ public class RatingService {
         stringRedisTemplate.opsForValue().set(userReviewKey, String.valueOf(newRating));
     }
 
+    @Retryable(value = {Exception.class}, maxAttempts = 5, backoff = @Backoff(delay = 1000))
     public void deleteReview(long whiskeyId, long memberId) {
         String ratingSumKey = String.format(RATING_SUM_KEY, whiskeyId);
         String userReviewKey = String.format(USER_REVIEW_KEY, whiskeyId, memberId);

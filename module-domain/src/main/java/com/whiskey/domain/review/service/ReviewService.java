@@ -31,7 +31,6 @@ public class ReviewService {
     private final WhiskeyRepository whiskeyRepository;
     private final MemberRepository memberRepository;
 
-    private final RatingService ratingService;
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
