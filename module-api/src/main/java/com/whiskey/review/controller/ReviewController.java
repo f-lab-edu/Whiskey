@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -51,5 +52,12 @@ public class ReviewController {
 
         reviewService.update(id, command);
         return ApiResponse.success("리뷰 수정이 완료되었습니다.");
+    }
+
+    @DeleteMapping("/review/{id}")
+    @Operation(summary = "위스키 리뷰 삭제", description = "위스키 리뷰를 삭제합니다.")
+    public ApiResponse<Void> delete(@Parameter(description = "리뷰 ID") @PathVariable("id") Long id, @CurrentMemberId Long memberId) {
+        reviewService.delete(id, memberId);
+        return ApiResponse.success("리뷰 삭제가 완료되었습니다.");
     }
 }

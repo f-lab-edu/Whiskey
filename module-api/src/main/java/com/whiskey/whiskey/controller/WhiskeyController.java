@@ -1,11 +1,13 @@
 package com.whiskey.whiskey.controller;
 
+import com.whiskey.domain.review.dto.ReviewCursorRequest;
 import com.whiskey.domain.review.dto.ReviewInfo;
 import com.whiskey.domain.review.service.ReviewService;
 import com.whiskey.domain.whiskey.dto.CaskCommand;
 import com.whiskey.domain.whiskey.dto.WhiskeyInfo;
 import com.whiskey.domain.whiskey.dto.WhiskeyCommand;
 import com.whiskey.domain.whiskey.dto.WhiskeySearchCondition;
+import com.whiskey.domain.review.dto.ReviewCursorResponse;
 import com.whiskey.whiskey.dto.ReviewResponse;
 import com.whiskey.whiskey.dto.WhiskeyRegisterRequest;
 import com.whiskey.whiskey.dto.WhiskeyResponse;
@@ -17,6 +19,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -120,11 +123,20 @@ public class WhiskeyController {
     }
 
     @GetMapping("/whiskey/{id}/reviews")
-    public ApiResponse<Page<ReviewResponse>> reviews(@PathVariable("id") Long id, @RequestParam(name = "page", defaultValue = "0") int page, @RequestParam(name = "size", defaultValue = "10") int size, @RequestParam(name = "sort", defaultValue = "desc") String sort) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sort));
+    public ApiResponse<ReviewCursorResponse<ReviewResponse>> reviews(
+        @PathVariable("id") Long id,
+        @RequestParam(name = "cursor", required = false) String cursor,
+        @RequestParam(name = "size", defaultValue = "7") int size) {
 
-        Page<ReviewInfo> reviews = reviewService.reviews(id, pageable);
-        Page<ReviewResponse> responses = reviews.map(ReviewResponse::from);
+        ReviewCursorRequest reviewRequest = ReviewCursorRequest.of(cursor, size);
+        ReviewCursorResponse<ReviewInfo> reviews = reviewService.getLatestReviews(id, reviewRequest);
+
+        ReviewCursorResponse<ReviewResponse> responses = ReviewCursorResponse.of(
+            reviews.data().stream().map(ReviewResponse::from).collect(Collectors.toList()),
+            reviews.nextCursor(),
+            reviews.hasNext()
+        );
+
         return ApiResponse.success("리뷰 목록을 조회하였습니다.", responses);
     }
 }
