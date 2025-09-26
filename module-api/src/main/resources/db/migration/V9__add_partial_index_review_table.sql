@@ -1,0 +1,1 @@
+CREATE INDEX idx_review_active ON review(whiskey_id, id) WHERE deleted_at IS NULL;
