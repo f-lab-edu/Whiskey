@@ -1,10 +1,12 @@
 package com.whiskey.domain.review.repository;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.whiskey.domain.member.QMember;
 import com.whiskey.domain.review.QReview;
 import com.whiskey.domain.review.Review;
+import com.whiskey.domain.review.enums.ReviewFilter;
 import com.whiskey.domain.whiskey.QWhiskey;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +51,7 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
     }
 
     @Override
-    public List<Review> findLatestReviews(long whiskeyId, Long cursorId, int size) {
+    public List<Review> findLatestReviews(long whiskeyId, Long cursorId, int size, ReviewFilter filter) {
         QReview review = QReview.review;
         QMember member = QMember.member;
         QWhiskey whiskey = QWhiskey.whiskey;
@@ -58,12 +60,23 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
             .selectFrom(review)
             .join(review.member, member).fetchJoin()
             .join(review.whiskey, whiskey).fetchJoin()
-            .where(review.whiskey.id.eq(whiskeyId));
+            .where(
+                review.whiskey.id.eq(whiskeyId),
+                reviewCondition(filter)
+            );
 
         if(cursorId != null) {
             query.where(review.id.lt(cursorId));
         }
 
         return query.orderBy(review.id.desc()).limit(size + 1).fetch();
+    }
+
+    private BooleanExpression reviewCondition(ReviewFilter filter) {
+        return switch(filter) {
+            case ACTIVE -> QReview.review.deletedAt.isNull();
+            case DELETED -> QReview.review.deletedAt.isNotNull();
+            case ALL -> null;
+        };
     }
 }

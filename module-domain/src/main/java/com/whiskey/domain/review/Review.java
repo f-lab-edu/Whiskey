@@ -1,6 +1,6 @@
 package com.whiskey.domain.review;
 
-import com.whiskey.domain.base.BaseEntity;
+import com.whiskey.domain.base.DeleteEntity;
 import com.whiskey.domain.member.Member;
 import com.whiskey.domain.whiskey.Whiskey;
 import jakarta.persistence.Column;
@@ -21,7 +21,7 @@ import org.springframework.data.annotation.CreatedDate;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Review extends BaseEntity {
+public class Review extends DeleteEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "whiskey_id")
     private Whiskey whiskey;

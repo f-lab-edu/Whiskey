@@ -61,7 +61,7 @@ public class ReviewService {
             cursorId = Long.parseLong(reviewRequest.cursor());
         }
 
-        List<Review> reviews = reviewRepository.findLatestReviews(whiskeyId, cursorId, reviewRequest.size());
+        List<Review> reviews = reviewRepository.findLatestReviews(whiskeyId, cursorId, reviewRequest.size(), reviewRequest.filter());
 
         boolean hasNext = reviews.size() > reviewRequest.size();
         if(hasNext) {
@@ -110,7 +110,8 @@ public class ReviewService {
             throw ErrorCode.UNAUTHORIZED.exception("본인의 리뷰만 삭제가능합니다.");
         }
 
-        reviewRepository.deleteById(id);
+//        reviewRepository.deleteById(id);
+        review.delete();
         eventPublisher.publishEvent(new ReviewDeletedEvent(whiskey.getId(), memberId));
     }
 

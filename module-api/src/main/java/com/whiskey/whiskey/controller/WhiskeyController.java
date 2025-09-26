@@ -2,6 +2,7 @@ package com.whiskey.whiskey.controller;
 
 import com.whiskey.domain.review.dto.ReviewCursorRequest;
 import com.whiskey.domain.review.dto.ReviewInfo;
+import com.whiskey.domain.review.enums.ReviewFilter;
 import com.whiskey.domain.review.service.ReviewService;
 import com.whiskey.domain.whiskey.dto.CaskCommand;
 import com.whiskey.domain.whiskey.dto.WhiskeyInfo;
@@ -126,9 +127,10 @@ public class WhiskeyController {
     public ApiResponse<ReviewCursorResponse<ReviewResponse>> reviews(
         @PathVariable("id") Long id,
         @RequestParam(name = "cursor", required = false) String cursor,
-        @RequestParam(name = "size", defaultValue = "7") int size) {
+        @RequestParam(name = "size", defaultValue = "7") int size,
+        @RequestParam(name = "filter", defaultValue = "ACTIVE") String filter) {
 
-        ReviewCursorRequest reviewRequest = ReviewCursorRequest.of(cursor, size);
+        ReviewCursorRequest reviewRequest = ReviewCursorRequest.of(cursor, size, ReviewFilter.valueOf(filter));
         ReviewCursorResponse<ReviewInfo> reviews = reviewService.getLatestReviews(id, reviewRequest);
 
         ReviewCursorResponse<ReviewResponse> responses = ReviewCursorResponse.of(
