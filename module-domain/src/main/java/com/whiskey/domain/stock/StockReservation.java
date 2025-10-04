@@ -1,6 +1,7 @@
 package com.whiskey.domain.stock;
 
 import com.whiskey.domain.base.BaseEntity;
+import com.whiskey.domain.order.Order;
 import com.whiskey.domain.stock.enums.ReservationType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -18,8 +19,9 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class StockReservation extends BaseEntity {
-    @Column(nullable = false)
-    private long orderId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", nullable = false)
+    private Order order;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "stock_id", nullable = false)
@@ -39,15 +41,16 @@ public class StockReservation extends BaseEntity {
 
     private LocalDateTime cancelledAt;
 
-    public static StockReservation create(Stock stock, Long orderId, int quantity, int expireMinutes) {
+    public static StockReservation create(Stock stock, Order order, int quantity, int expireMinutes) {
         StockReservation reservation = new StockReservation();
         reservation.stock = stock;
-        reservation.orderId = orderId;
+        reservation.order = order;
         reservation.reservedQuantity = quantity;
         reservation.reservationType = ReservationType.RESERVED;
         reservation.expireAt = LocalDateTime.now().plusMinutes(expireMinutes);
 
         stock.reserve(quantity);
+        order.addReservation(reservation);
         return reservation;
     }
 
