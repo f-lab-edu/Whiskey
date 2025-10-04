@@ -1,7 +1,7 @@
 package com.whiskey.domain.stock;
 
 import com.whiskey.domain.base.BaseEntity;
-import com.whiskey.domain.stock.enums.StatusType;
+import com.whiskey.domain.stock.enums.StockStatusType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -33,7 +33,7 @@ public class Stock extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private StatusType statusType;
+    private StockStatusType statusType;
 
     @Version
     private Long version;
@@ -45,7 +45,7 @@ public class Stock extends BaseEntity {
         stock.quantity = quantity;
         stock.availableQuantity = quantity;
         stock.price = price;
-        stock.statusType = quantity > 0 ? StatusType.IN_STOCK : StatusType.SOLD_OUT;
+        stock.statusType = quantity > 0 ? StockStatusType.IN_STOCK : StockStatusType.SOLD_OUT;
         return stock;
     }
 
@@ -72,10 +72,10 @@ public class Stock extends BaseEntity {
     // 재고상태 자동 업데이트
     private void updateStatus() {
         if(this.availableQuantity > 0) {
-            this.statusType = StatusType.IN_STOCK;
+            this.statusType = StockStatusType.IN_STOCK;
         }
         else {
-            this.statusType = StatusType.SOLD_OUT;
+            this.statusType = StockStatusType.SOLD_OUT;
         }
     }
 
