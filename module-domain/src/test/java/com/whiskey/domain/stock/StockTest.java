@@ -2,9 +2,9 @@ package com.whiskey.domain.stock;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.*;
 
-import com.whiskey.domain.stock.enums.StatusType;
+import com.whiskey.domain.order.Order;
+import com.whiskey.domain.stock.enums.StockStatusType;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
 
@@ -17,7 +17,7 @@ class StockTest {
 
         assertThat(stock.getAvailableQuantity()).isEqualTo(5);
         assertThat(stock.getQuantity()).isEqualTo(10);
-        assertThat(stock.getStatusType()).isEqualTo(StatusType.IN_STOCK);
+        assertThat(stock.getStatusType()).isEqualTo(StockStatusType.IN_STOCK);
     }
 
     @Test
@@ -43,7 +43,8 @@ class StockTest {
     @Test
     void 확정된_예약은_취소_불가() {
         Stock stock = Stock.of(1L, "v1", 10, new BigDecimal("100"));
-        StockReservation reservation = StockReservation.create(stock, 123L, 5, 10);
+        Order order = Order.of(1L, new BigDecimal("100"), 10);
+        StockReservation reservation = StockReservation.create(stock, order, 5, 10);
         reservation.confirm();
 
         assertThatThrownBy(() -> reservation.cancelByUser())
@@ -57,7 +58,7 @@ class StockTest {
 
         stock.reserve(10);
 
-        assertThat(stock.getStatusType()).isEqualTo(StatusType.SOLD_OUT);
+        assertThat(stock.getStatusType()).isEqualTo(StockStatusType.SOLD_OUT);
     }
 
     @Test
@@ -67,13 +68,14 @@ class StockTest {
 
         stock.cancel(10);
 
-        assertThat(stock.getStatusType()).isEqualTo(StatusType.IN_STOCK);
+        assertThat(stock.getStatusType()).isEqualTo(StockStatusType.IN_STOCK);
     }
 
     @Test
     void 만료된_예약은_확정_불가() {
         Stock stock = Stock.of(1L, "v1", 10, new BigDecimal("100"));
-        StockReservation reservation = StockReservation.create(stock, 123L, 5, -1); // 이미 만료
+        Order order = Order.of(1L, new BigDecimal("100"), 10);
+        StockReservation reservation = StockReservation.create(stock, order, 5, -1); // 이미 만료
 
         assertThatThrownBy(() -> reservation.confirm())
             .isInstanceOf(IllegalStateException.class)
