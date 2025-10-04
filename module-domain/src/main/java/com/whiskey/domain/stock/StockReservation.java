@@ -81,7 +81,7 @@ public class StockReservation extends BaseEntity {
     }
 
     private void checkConfirm() {
-        if(this.reservationType != ReservationType.CONFIRMED) {
+        if(this.reservationType != ReservationType.RESERVED) {
             throw new IllegalStateException("예약 상태인 주문만 확정할 수 있습니다.");
         }
 
