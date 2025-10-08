@@ -2,7 +2,7 @@ package com.whiskey.domain.stock;
 
 import com.whiskey.domain.base.BaseEntity;
 import com.whiskey.domain.order.Order;
-import com.whiskey.domain.stock.enums.ReservationType;
+import com.whiskey.domain.stock.enums.ReservationStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -32,7 +32,7 @@ public class StockReservation extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ReservationType reservationType;
+    private ReservationStatus reservationStatus;
 
     @Column(name = "expire_at")
     private LocalDateTime expireAt;
@@ -46,7 +46,7 @@ public class StockReservation extends BaseEntity {
         reservation.stock = stock;
         reservation.order = order;
         reservation.reservedQuantity = quantity;
-        reservation.reservationType = ReservationType.RESERVED;
+        reservation.reservationStatus = ReservationStatus.RESERVED;
         reservation.expireAt = LocalDateTime.now().plusMinutes(expireMinutes);
 
         stock.reserve(quantity);
@@ -56,7 +56,7 @@ public class StockReservation extends BaseEntity {
 
     public void confirm() {
         checkConfirm();
-        this.reservationType = ReservationType.CONFIRMED;
+        this.reservationStatus = ReservationStatus.CONFIRMED;
         this.confirmedAt = LocalDateTime.now();
 
         // Stock의 실제 재고 차감
@@ -64,11 +64,11 @@ public class StockReservation extends BaseEntity {
     }
 
     public void cancelByUser() {
-        if(this.reservationType == ReservationType.CONFIRMED) {
+        if(this.reservationStatus == ReservationStatus.CONFIRMED) {
             throw new IllegalStateException("이미 확정된 예약은 취소할 수 없습니다.");
         }
 
-        this.reservationType = ReservationType.CANCELLED;
+        this.reservationStatus = ReservationStatus.CANCELLED;
         this.cancelledAt = LocalDateTime.now();
 
         // Stock의 실제 재고 추가
@@ -76,7 +76,7 @@ public class StockReservation extends BaseEntity {
     }
 
     public void cancelByExpiration() {
-        this.reservationType = ReservationType.EXPIRED;
+        this.reservationStatus = ReservationStatus.EXPIRED;
         this.cancelledAt = LocalDateTime.now();
 
         // Stock의 실제 재고 추가
@@ -84,11 +84,11 @@ public class StockReservation extends BaseEntity {
     }
 
     public boolean isExpired() {
-        return LocalDateTime.now().isAfter(this.expireAt) && this.reservationType == ReservationType.RESERVED;
+        return LocalDateTime.now().isAfter(this.expireAt) && this.reservationStatus == ReservationStatus.RESERVED;
     }
 
     private void checkConfirm() {
-        if(this.reservationType != ReservationType.RESERVED) {
+        if(this.reservationStatus != ReservationStatus.RESERVED) {
             throw new IllegalStateException("예약 상태인 주문만 확정할 수 있습니다.");
         }
 

@@ -4,7 +4,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 import com.whiskey.domain.order.Order;
-import com.whiskey.domain.stock.enums.StockStatusType;
+import com.whiskey.domain.stock.enums.StockStatus;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
 
@@ -17,7 +17,7 @@ class StockTest {
 
         assertThat(stock.getAvailableQuantity()).isEqualTo(5);
         assertThat(stock.getQuantity()).isEqualTo(10);
-        assertThat(stock.getStatusType()).isEqualTo(StockStatusType.IN_STOCK);
+        assertThat(stock.getStockStatus()).isEqualTo(StockStatus.IN_STOCK);
     }
 
     @Test
@@ -58,7 +58,7 @@ class StockTest {
 
         stock.reserve(10);
 
-        assertThat(stock.getStatusType()).isEqualTo(StockStatusType.SOLD_OUT);
+        assertThat(stock.getStockStatus()).isEqualTo(StockStatus.SOLD_OUT);
     }
 
     @Test
@@ -68,7 +68,7 @@ class StockTest {
 
         stock.cancel(10);
 
-        assertThat(stock.getStatusType()).isEqualTo(StockStatusType.IN_STOCK);
+        assertThat(stock.getStockStatus()).isEqualTo(StockStatus.IN_STOCK);
     }
 
     @Test
