@@ -79,6 +79,6 @@ class StockTest {
 
         assertThatThrownBy(() -> reservation.confirm())
             .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("예약 상태인 주문만 확정할 수 있습니다.");
+            .hasMessageContaining("만료된 예약은 주문 확정할 수 없습니다.");
     }
 }

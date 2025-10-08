@@ -64,6 +64,10 @@ public class StockReservation extends BaseEntity {
     }
 
     public void cancelByUser() {
+        if(this.reservationType == ReservationType.CONFIRMED) {
+            throw new IllegalStateException("이미 확정된 예약은 취소할 수 없습니다.");
+        }
+
         this.reservationType = ReservationType.CANCELLED;
         this.cancelledAt = LocalDateTime.now();
 
