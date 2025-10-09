@@ -1,12 +1,12 @@
 package com.whiskey.order.dto;
 
-import com.whiskey.domain.order.enums.OrderStatusType;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import com.whiskey.domain.order.dto.OrderResult;
 
 public record CreateOrderResponse(
-    Long orderId,
-    BigDecimal totalPrice,
-    LocalDateTime expireAt,
-    OrderStatusType orderStatus
-) {}
+    Long orderId
+) {
+
+    public static CreateOrderResponse from(OrderResult result) {
+        return new CreateOrderResponse(result.orderId());
+    }
+}

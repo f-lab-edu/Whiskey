@@ -29,3 +29,6 @@ dev:
   enabled: true
   header-name: bypass-jwt-auth
   token: whisKey-dev
+order:
+  reservation:
+    expire-time: 30
