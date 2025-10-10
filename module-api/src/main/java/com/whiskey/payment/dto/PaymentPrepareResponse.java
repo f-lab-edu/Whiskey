@@ -1,0 +1,14 @@
+package com.whiskey.payment.dto;
+
+import lombok.Builder;
+
+@Builder
+public record PaymentPrepareResponse(
+    String orderId,
+    Long amount,
+    String description
+) {
+    public static PaymentPrepareResponse of(String orderId, Long amount, String description) {
+        return new PaymentPrepareResponse(orderId, amount, description);
+    }
+}
