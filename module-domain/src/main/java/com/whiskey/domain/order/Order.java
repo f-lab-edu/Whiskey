@@ -1,0 +1,101 @@
+package com.whiskey.domain.order;
+
+import com.whiskey.domain.base.BaseEntity;
+import com.whiskey.domain.order.enums.OrderStatusType;
+import com.whiskey.domain.stock.StockReservation;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Table(name = "orders")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Order extends BaseEntity {
+
+    @Column(nullable = false)
+    private Long userId;
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+    private List<StockReservation> reservations = new ArrayList<>();
+
+    @Column(nullable = false)
+    private BigDecimal totalPrice;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private OrderStatusType orderStatus;
+
+    private String paymentId;
+
+    @Column(nullable = false)
+    private LocalDateTime expireAt;
+
+    private LocalDateTime confirmedAt;
+
+    private LocalDateTime cancelledAt;
+
+    public static Order of(Long userId, BigDecimal totalPrice, int expireMinutes) {
+        Order order = new Order();
+        order.userId = userId;
+        order.totalPrice = totalPrice;
+        order.orderStatus = OrderStatusType.PENDING;
+        order.expireAt = LocalDateTime.now().plusMinutes(expireMinutes);
+        return order;
+    }
+
+    public void addReservation(StockReservation reservation) {
+        this.reservations.add(reservation);
+    }
+
+    public void confirmReservation(String paymentId) {
+        checkConfirm();
+        this.orderStatus = OrderStatusType.CONFIRMED;
+        this.paymentId = paymentId;
+        this.confirmedAt = LocalDateTime.now();
+
+        reservations.forEach(StockReservation::confirm);
+    }
+
+    public void cancelReservation() {
+        checkCancel();
+        this.orderStatus = OrderStatusType.CANCELLED;
+        this.cancelledAt = LocalDateTime.now();
+
+        reservations.forEach(StockReservation::cancelByUser);
+    }
+
+    public void expire() {
+        this.orderStatus = OrderStatusType.EXPIRED;
+        this.cancelledAt = LocalDateTime.now();
+
+        reservations.forEach(StockReservation::cancelByExpiration);
+    }
+
+    private void checkConfirm() {
+        if(this.orderStatus != OrderStatusType.PENDING) {
+            throw new IllegalStateException("대기 상태에서만 주문 확정이 가능합니다.");
+        }
+
+        if(LocalDateTime.now().isAfter(expireAt)) {
+            throw new IllegalStateException("만료된 주문은 확정할 수 없습니다.");
+        }
+    }
+
+    private void checkCancel() {
+        if(this.orderStatus == OrderStatusType.CANCELLED || this.orderStatus == OrderStatusType.EXPIRED) {
+            throw new IllegalStateException("이미 취소된 주문입니다.");
+        }
+    }
+}
