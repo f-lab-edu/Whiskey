@@ -25,7 +25,7 @@ import lombok.NoArgsConstructor;
 public class Order extends BaseEntity {
 
     @Column(nullable = false)
-    private Long userId;
+    private Long memberId;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<StockReservation> reservations = new ArrayList<>();
@@ -42,13 +42,15 @@ public class Order extends BaseEntity {
     @Column(nullable = false)
     private LocalDateTime expireAt;
 
+    @Column(name = "confirmed_at")
     private LocalDateTime confirmedAt;
 
+    @Column(name = "cancelled_at")
     private LocalDateTime cancelledAt;
 
-    public static Order of(Long userId, BigDecimal totalPrice, int expireMinutes) {
+    public static Order of(Long memberId, BigDecimal totalPrice, int expireMinutes) {
         Order order = new Order();
-        order.userId = userId;
+        order.memberId = memberId;
         order.totalPrice = totalPrice;
         order.orderStatus = OrderStatusType.PENDING;
         order.expireAt = LocalDateTime.now().plusMinutes(expireMinutes);

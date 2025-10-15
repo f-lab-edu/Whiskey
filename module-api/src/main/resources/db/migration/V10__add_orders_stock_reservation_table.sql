@@ -5,7 +5,7 @@ CREATE TABLE orders (
     order_status enum('PENDING', 'CONFIRMED', 'CANCELLED', 'EXPIRED'),
     payment_id varchar(100),
     expire_at datetime NOT NULL,
-    confirm_at datetime,
+    confirmed_at datetime,
     cancelled_at datetime,
     create_at datetime,
     update_at datetime
@@ -33,8 +33,8 @@ CREATE TABLE stock_reservation (
     expire_at DATETIME,
     confirmed_at DATETIME,
     cancelled_at DATETIME,
-    created_at DATETIME NOT NULL,
-    updated_at DATETIME NOT NULL,
+    create_at DATETIME NOT NULL,
+    update_at DATETIME NOT NULL,
     FOREIGN KEY (order_id) REFERENCES orders(id),
     FOREIGN KEY (stock_id) REFERENCES stocks(id)
 );
