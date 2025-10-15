@@ -7,14 +7,11 @@ public record PaymentInfo(
     long amount,
     String description
 ) {
-    public static PaymentInfo from(Payme
-
-
-        nt payment) {
+    public static PaymentInfo from(Payment payment) {
         return new PaymentInfo(
-            payment.getMember(),
-            payment.amount(),
-            payment.description()
+            payment.getMember().getId(),
+            payment.getAmount(),
+            payment.getDescription()
         );
     }
 }

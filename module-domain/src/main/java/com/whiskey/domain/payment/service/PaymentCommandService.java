@@ -8,15 +8,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional
-public class PaymentService {
+@Slf4j
+public class PaymentCommandService {
 
     private final PaymentRepository paymentRepository;
-    private final com.whiskey.payment.service.PaymentService paymentService;
 
+    @Transactional
     public Payment createPayment(Member member, Long amount, String description) {
         Payment payment = Payment.builder()
             .member(member)
