@@ -2,12 +2,12 @@ package com.whiskey.payment.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.whiskey.payment.config.TossPaymentProperties;
-import com.whiskey.payment.dto.TossPaymentConfirmRequest;
-import com.whiskey.payment.dto.TossPaymentErrorResponse;
-import com.whiskey.payment.dto.TossPaymentResponse;
+import com.whiskey.payment.config.PaymentProperties;
+import com.whiskey.payment.dto.PaymentConfirmRequest;
+import com.whiskey.payment.dto.PaymentErrorResponse;
+import com.whiskey.payment.dto.PaymentResponse;
 import com.whiskey.payment.exception.RetryablePaymentException;
-import com.whiskey.payment.exception.TossPaymentException;
+import com.whiskey.payment.exception.PaymentException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import lombok.RequiredArgsConstructor;
@@ -24,13 +24,13 @@ import org.springframework.web.client.RestTemplate;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class TossPaymentClient {
+public class PaymentClient {
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
-    private final TossPaymentProperties properties;
+    private final PaymentProperties properties;
 
-    public TossPaymentResponse confirmPayment(TossPaymentConfirmRequest request)
+    public PaymentResponse confirmPayment(PaymentConfirmRequest request)
         throws JsonProcessingException {
         String requestUrl = properties.getBaseUrl();
 
@@ -42,17 +42,17 @@ public class TossPaymentClient {
         String auth = properties.getSecretKey() + ":";
         String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes(StandardCharsets.UTF_8));
         headers.set("Authorization", "Basic " + encodedAuth);
-        HttpEntity<TossPaymentConfirmRequest> requestEntity = new HttpEntity<>(request, headers);
+        HttpEntity<PaymentConfirmRequest> requestEntity = new HttpEntity<>(request, headers);
 
         try {
-            ResponseEntity<TossPaymentResponse> response = restTemplate.postForEntity(requestUrl, requestEntity, TossPaymentResponse.class);
+            ResponseEntity<PaymentResponse> response = restTemplate.postForEntity(requestUrl, requestEntity, PaymentResponse.class);
             return response.getBody();
         }
         catch (HttpClientErrorException e) {
             // 4XX 에러, Retry 불가처리
             log.error("Toss payment 클라이언트 에러 - orderId: {}, status: {}, body: {}", request.orderId(), e.getStatusCode(), e.getResponseBodyAsString());
-            TossPaymentErrorResponse errorResponse = objectMapper.readValue(e.getResponseBodyAsString(), TossPaymentErrorResponse.class);
-            throw new TossPaymentException(
+            PaymentErrorResponse errorResponse = objectMapper.readValue(e.getResponseBodyAsString(), PaymentErrorResponse.class);
+            throw new PaymentException(
                 errorResponse.code(),
                 errorResponse.message()
             );

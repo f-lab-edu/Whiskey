@@ -2,13 +2,12 @@ package com.whiskey.payment.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.whiskey.payment.config.TossPaymentProperties;
-import com.whiskey.payment.dto.TossPaymentConfirmRequest;
-import com.whiskey.payment.dto.TossPaymentResponse;
+import com.whiskey.payment.config.PaymentProperties;
+import com.whiskey.payment.dto.PaymentConfirmRequest;
+import com.whiskey.payment.dto.PaymentResponse;
 import com.whiskey.payment.exception.RetryablePaymentException;
-import com.whiskey.payment.exception.TossPaymentException;
+import com.whiskey.payment.exception.PaymentException;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -25,21 +24,21 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
-class TossPaymentClientTest {
+class PaymentClientTest {
 
     @Mock
     private RestTemplate restTemplate;
 
     @Mock
-    private TossPaymentProperties properties;
+    private PaymentProperties properties;
 
-    private TossPaymentClient tossPaymentClient;
+    private PaymentClient paymentClient;
     private ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp() {
         objectMapper = new ObjectMapper();
-        tossPaymentClient = new TossPaymentClient(
+        paymentClient = new PaymentClient(
             restTemplate,
             objectMapper,
             properties
@@ -51,24 +50,24 @@ class TossPaymentClientTest {
 
     @Test
     void 결제_승인_성공() throws JsonProcessingException {
-        TossPaymentConfirmRequest request = createRequest();
+        PaymentConfirmRequest request = createRequest();
 
-        TossPaymentResponse mockResponse = new TossPaymentResponse(
+        PaymentResponse mockResponse = new PaymentResponse(
             "test_payment_key",
             "ORDER_123",
             10000L
         );
 
-        ResponseEntity<TossPaymentResponse> responseEntity =
+        ResponseEntity<PaymentResponse> responseEntity =
             ResponseEntity.ok(mockResponse);
 
         given(restTemplate.postForEntity(
             anyString(),
             any(HttpEntity.class),
-            eq(TossPaymentResponse.class)
+            eq(PaymentResponse.class)
         )).willReturn(responseEntity);
 
-        TossPaymentResponse response = tossPaymentClient.confirmPayment(request);
+        PaymentResponse response = paymentClient.confirmPayment(request);
 
         assertThat(response).isNotNull();
         assertThat(response.paymentKey()).isEqualTo("test_payment_key");
@@ -78,7 +77,7 @@ class TossPaymentClientTest {
 
     @Test
     void 잘못된_요청() {
-        TossPaymentConfirmRequest request = createRequest();
+        PaymentConfirmRequest request = createRequest();
 
         String errorJson = "{\"code\":\"INVALID_REQUEST\",\"message\":\"잘못된 요청입니다.\"}";
         HttpClientErrorException exception =
@@ -93,16 +92,16 @@ class TossPaymentClientTest {
         given(restTemplate.postForEntity(
             anyString(),
             any(HttpEntity.class),
-            eq(TossPaymentResponse.class)
+            eq(PaymentResponse.class)
         )).willThrow(exception);
 
-        assertThatThrownBy(() -> tossPaymentClient.confirmPayment(request))
-            .isInstanceOf(TossPaymentException.class)
+        assertThatThrownBy(() -> paymentClient.confirmPayment(request))
+            .isInstanceOf(PaymentException.class)
             .hasMessageContaining("잘못된 요청");
     }
 
-    private TossPaymentConfirmRequest createRequest() {
-        return TossPaymentConfirmRequest.builder()
+    private PaymentConfirmRequest createRequest() {
+        return PaymentConfirmRequest.builder()
             .paymentKey("test_payment_key")
             .orderId("ORDER_123")
             .amount(10000L)
@@ -111,7 +110,7 @@ class TossPaymentClientTest {
 
     @Test
     void 에러_발생_후_재시도() {
-        TossPaymentConfirmRequest request = createRequest();
+        PaymentConfirmRequest request = createRequest();
 
         HttpServerErrorException exception =
             HttpServerErrorException.create(
@@ -125,10 +124,10 @@ class TossPaymentClientTest {
         given(restTemplate.postForEntity(
             anyString(),
             any(HttpEntity.class),
-            eq(TossPaymentResponse.class)
+            eq(PaymentResponse.class)
         )).willThrow(exception);
 
-        assertThatThrownBy(() -> tossPaymentClient.confirmPayment(request))
+        assertThatThrownBy(() -> paymentClient.confirmPayment(request))
             .isInstanceOf(RetryablePaymentException.class);
     }
 }

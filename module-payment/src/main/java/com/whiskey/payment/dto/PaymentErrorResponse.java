@@ -1,6 +1,6 @@
 package com.whiskey.payment.dto;
 
-public record TossPaymentErrorResponse(
+public record PaymentErrorResponse(
     String code,
     String message
 ) {}

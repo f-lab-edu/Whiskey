@@ -5,6 +5,6 @@ import org.springframework.retry.annotation.EnableRetry;
 
 @Configuration
 @EnableRetry
-public class TossRetryConfig {
+public class RetryConfig {
 
 }

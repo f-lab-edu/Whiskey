@@ -7,7 +7,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Getter
 @Setter
 @ConfigurationProperties(prefix = "toss.payment")
-public class TossPaymentProperties {
+public class PaymentProperties {
     private String secretKey;
     private String baseUrl;
     private Integer connectTimeout;

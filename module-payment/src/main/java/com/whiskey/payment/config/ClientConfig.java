@@ -9,11 +9,11 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
 @Configuration
-@EnableConfigurationProperties(TossPaymentProperties.class)
+@EnableConfigurationProperties(PaymentProperties.class)
 @RequiredArgsConstructor
 public class ClientConfig {
 
-    private final TossPaymentProperties properties;
+    private final PaymentProperties properties;
 
     @Bean
     @Primary
