@@ -1,8 +1,8 @@
 package com.whiskey.domain.review.service;
 
-import com.whiskey.domain.event.ReviewDeletedEvent;
-import com.whiskey.domain.event.ReviewRegisteredEvent;
-import com.whiskey.domain.event.ReviewUpdatedEvent;
+import com.whiskey.domain.review.event.ReviewDeletedEvent;
+import com.whiskey.domain.review.event.ReviewRegisteredEvent;
+import com.whiskey.domain.review.event.ReviewUpdatedEvent;
 import com.whiskey.domain.member.Member;
 import com.whiskey.domain.member.repository.MemberRepository;
 import com.whiskey.domain.review.Review;

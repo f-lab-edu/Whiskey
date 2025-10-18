@@ -32,3 +32,14 @@ dev:
 order:
   reservation:
     expire-time: 30
+toss:
+  payment:
+    secret-key: test_sk_pP2YxJ4K87apm2lqMegpVRGZwXLO
+    base-url: https://api.tosspayments.com/v1/payments/confirm
+    connect-timeout: 3000
+    read-timeout: 10000
+logging:
+  level:
+    com.whiskey.payment: DEBUG
+    org.springframework.web.client.RestTemplate: DEBUG
+    org.apache.http: DEBUG
