@@ -5,11 +5,11 @@ import com.whiskey.domain.stock.Stock;
 import com.whiskey.domain.stock.StockReservation;
 import com.whiskey.domain.stock.repository.StockRepository;
 import jakarta.persistence.OptimisticLockException;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -22,11 +22,11 @@ public class StockReservationService {
         maxAttempts = 3,
         backoff = @Backoff(delay = 100, multiplier = 2)
     )
-    public void reserveStock(Order order, Stock stock, int quantity, int expireTime) {
+    public void reserveStock(Order order, Stock stock, int quantity, LocalDateTime expireAt) {
         Stock freshStock = stockRepository.findById(stock.getId())
             .orElseThrow(() -> new IllegalArgumentException("재고를 찾을 수 없습니다."));
 
-        StockReservation.create(freshStock, order, quantity, expireTime);
+        StockReservation.create(freshStock, order, quantity, expireAt);
         stockRepository.save(freshStock);
     }
 }

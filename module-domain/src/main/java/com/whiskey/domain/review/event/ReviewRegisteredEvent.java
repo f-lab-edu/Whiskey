@@ -1,4 +1,4 @@
-package com.whiskey.domain.event;
+package com.whiskey.domain.review.event;
 
 public record ReviewRegisteredEvent(
     long whiskeyId,

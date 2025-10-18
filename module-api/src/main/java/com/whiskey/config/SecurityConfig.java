@@ -44,6 +44,7 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.DELETE, "/api/review/{id}").hasAnyRole(Role.ADMIN.getRole(), Role.USER.getRole())
                     .requestMatchers(HttpMethod.GET, "/api/test").hasAnyRole(Role.ADMIN.getRole(), Role.USER.getRole())
                     .requestMatchers(HttpMethod.POST, "/api/order").hasAnyRole(Role.ADMIN.getRole(), Role.USER.getRole())
+                    .requestMatchers(HttpMethod.PATCH, "/api/order/{orderId}/cancel").hasAnyRole(Role.ADMIN.getRole(), Role.USER.getRole())
                     .requestMatchers("/api/test/**").permitAll()
                     .requestMatchers("/api/batch/**").permitAll()
                 ).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

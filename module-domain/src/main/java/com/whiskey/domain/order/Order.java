@@ -48,12 +48,12 @@ public class Order extends BaseEntity {
     @Column(name = "cancelled_at")
     private LocalDateTime cancelledAt;
 
-    public static Order of(Long memberId, BigDecimal totalPrice, int expireMinutes) {
+    public static Order of(Long memberId, BigDecimal totalPrice, LocalDateTime expireMinutes) {
         Order order = new Order();
         order.memberId = memberId;
         order.totalPrice = totalPrice;
         order.orderStatus = OrderStatusType.PENDING;
-        order.expireAt = LocalDateTime.now().plusMinutes(expireMinutes);
+        order.expireAt = expireMinutes;
         return order;
     }
 
@@ -78,7 +78,7 @@ public class Order extends BaseEntity {
         reservations.forEach(StockReservation::cancelByUser);
     }
 
-    public void expire() {
+    public void expireReservation() {
         this.orderStatus = OrderStatusType.EXPIRED;
         this.cancelledAt = LocalDateTime.now();
 
