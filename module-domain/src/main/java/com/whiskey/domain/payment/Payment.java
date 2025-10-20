@@ -2,6 +2,7 @@ package com.whiskey.domain.payment;
 
 import com.whiskey.domain.base.BaseEntity;
 import com.whiskey.domain.member.Member;
+import com.whiskey.domain.order.Order;
 import com.whiskey.domain.payment.enums.PaymentStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -28,7 +29,7 @@ import lombok.Setter;
 public class Payment extends BaseEntity {
 
     @Column(nullable = false, unique = true)
-    private String orderId;
+    private String paymentOrderId;
 
     @Column(nullable = false)
     private String paymentKey;
@@ -36,6 +37,10 @@ public class Payment extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id")
+    private Order order;
 
     @Column(nullable = false)
     private Long amount;
@@ -54,10 +59,11 @@ public class Payment extends BaseEntity {
     private LocalDateTime approvedDate;
 
     @Builder
-    public Payment(Member member, Long amount, String description) {
-        this.orderId = UUID.randomUUID().toString();
+    public Payment(Member member, Order order, Long amount, String description) {
+        this.paymentOrderId = UUID.randomUUID().toString();
         this.paymentKey = null;
         this.member = member;
+        this.order = order;
         this.amount = amount;
         this.status = PaymentStatus.PENDING;
         this.description = description;

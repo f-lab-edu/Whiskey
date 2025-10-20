@@ -1,7 +1,8 @@
 package com.whiskey.domain.payment.dto;
 
 public record PaymentCommand(
-    long memberId,
-    String orderId,
+    Long memberId,
+    Long orderId,
+    Long amount,
     String description
 ) {}

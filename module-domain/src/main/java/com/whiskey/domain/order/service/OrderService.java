@@ -4,7 +4,7 @@ import com.whiskey.domain.order.Order;
 import com.whiskey.domain.order.dto.OrderCommand;
 import com.whiskey.domain.order.dto.OrderCommand.OrderItem;
 import com.whiskey.domain.order.dto.OrderResult;
-import com.whiskey.domain.order.enums.OrderStatusType;
+import com.whiskey.domain.order.enums.OrderStatus;
 import com.whiskey.domain.order.event.OrderExpiryRegisteredEvent;
 import com.whiskey.domain.order.repository.OrderRepository;
 import com.whiskey.domain.stock.repository.StockRepository;
@@ -98,7 +98,7 @@ public class OrderService {
         Order order = orderRepository.findById(orderId).orElseThrow(() -> ErrorCode.NOT_FOUND.exception("존재하지 않는 주문입니다."));
 
         // PENDING 주문만 만료 처리
-        if(order.getOrderStatus() != OrderStatusType.PENDING) {
+        if(order.getOrderStatus() != OrderStatus.PENDING) {
             return;
         }
 
