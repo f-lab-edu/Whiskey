@@ -1,8 +1,10 @@
 package com.whiskey.domain.payment.dto;
 
+import java.math.BigDecimal;
+
 public record PaymentCommand(
     Long memberId,
     Long orderId,
-    Long amount,
+    BigDecimal amount,
     String description
 ) {}

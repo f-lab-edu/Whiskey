@@ -2,6 +2,7 @@ package com.whiskey.payment.dto;
 
 import com.whiskey.domain.payment.Payment;
 import com.whiskey.domain.payment.enums.PaymentStatus;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.Builder;
 
@@ -9,7 +10,7 @@ import lombok.Builder;
 public record PaymentConfirmResponse(
     String paymentKey,
     String paymentOrderId,
-    Long totalAmount,
+    BigDecimal totalAmount,
     PaymentStatus status,
     LocalDateTime approvedAt
 ) {

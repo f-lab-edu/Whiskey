@@ -7,9 +7,12 @@ import com.whiskey.domain.order.enums.OrderStatus;
 import com.whiskey.domain.order.repository.OrderRepository;
 import com.whiskey.domain.payment.Payment;
 import com.whiskey.domain.payment.dto.PaymentCommand;
+import com.whiskey.domain.payment.dto.PaymentInfo;
+import com.whiskey.domain.payment.dto.PaymentResult;
 import com.whiskey.domain.payment.repository.PaymentRepository;
 import com.whiskey.exception.ErrorCode;
 import jakarta.validation.constraints.NotNull;
+import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,7 +28,7 @@ public class PaymentCommandService {
     private final OrderRepository orderRepository;
 
     @Transactional
-    public Payment createPayment(PaymentCommand command) {
+    public PaymentResult createPayment(PaymentCommand command) {
         // 1. 회원 확인
         Member member = checkExistMember(command.memberId());
 
@@ -43,6 +46,10 @@ public class PaymentCommandService {
             throw new IllegalArgumentException("결제 대기 중인 주문이 아닙니다.");
         }
 
+        if(order.getTotalPrice().compareTo(command.amount()) != 0) {
+            throw new IllegalArgumentException("결제 금액이 일치하지 않습니다.");
+        }
+
         if(paymentRepository.existsByOrder(order)) {
             throw new IllegalArgumentException("이미 결제된 주문입니다.");
         }
@@ -54,7 +61,8 @@ public class PaymentCommandService {
             .description(command.description())
             .build();
 
-        return paymentRepository.save(payment);
+        paymentRepository.save(payment);
+        return new PaymentResult(payment.getPaymentOrderId(), payment.getAmount());
     }
 
     private Member checkExistMember(long memberId) {

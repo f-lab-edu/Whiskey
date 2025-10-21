@@ -1,10 +1,11 @@
 package com.whiskey.domain.payment.dto;
 
 import com.whiskey.domain.payment.Payment;
+import java.math.BigDecimal;
 
 public record PaymentInfo(
     long memberId,
-    long amount,
+    BigDecimal amount,
     String description
 ) {
     public static PaymentInfo from(Payment payment) {

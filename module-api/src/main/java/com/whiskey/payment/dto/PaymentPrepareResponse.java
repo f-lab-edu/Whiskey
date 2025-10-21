@@ -1,15 +1,14 @@
 package com.whiskey.payment.dto;
 
+import com.whiskey.domain.payment.dto.PaymentResult;
 import lombok.Builder;
 
 @Builder
 public record PaymentPrepareResponse(
     String orderId,
-    String paymentKey,
-    Long amount,
-    String description
+    Long amount
 ) {
-    public static PaymentPrepareResponse of(String orderId, String paymentKey, Long amount, String description) {
-        return new PaymentPrepareResponse(orderId, paymentKey, amount, description);
+    public static PaymentPrepareResponse from(PaymentResult result) {
+        return new PaymentPrepareResponse(result.orderId(), result.amount().longValueExact());
     }
 }
