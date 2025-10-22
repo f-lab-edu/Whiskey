@@ -2,7 +2,7 @@ package com.whiskey.domain.payment.dto;
 
 import java.math.BigDecimal;
 
-public record PaymentResult(
+public record PaymentPrepareResult(
     String orderId,
     BigDecimal amount
 ) {}

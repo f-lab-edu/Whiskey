@@ -17,14 +17,23 @@
     // 1. 백엔드에서 paymentOrderId 받기
     const response = await fetch('/api/payments/prepare', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' }
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI4Iiwicm9sZXMiOlsiUk9MRV9VU0VSIl0sImlhdCI6MTc2MTE0MTMwOSwiZXhwIjoxNzYxMTQxOTA5fQ.xc_Lfwm8tqFATE9VIuhL1M63FI4kdedtGoEpXRa7YS0'
+      },
+      body: JSON.stringify({
+        "orderId":5,
+        "amount":240000,
+        "description":null
+      })
     });
     const data = await response.json();
+    console.log(data);
 
     // 2. 토스 결제창 오픈
     tossPayments.requestPayment('카드', {
       amount: data.amount,
-      orderId: data.paymentOrderId,
+      orderId: data.orderId,
       orderName: data.orderName || '테스트 주문',
       successUrl: window.location.origin + '/payment-success',
       failUrl: window.location.origin + '/payment-fail',

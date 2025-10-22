@@ -1,7 +1,7 @@
 CREATE TABLE payments (
     id bigint PRIMARY KEY AUTO_INCREMENT,
     payment_order_id varchar(255) NOT NULL,
-    payment_key varchar(255) NOT NULL,
+    payment_key varchar(255),
     member_id bigint NOT NULL,
     order_id bigint,
     amount bigint NOT NULL,
@@ -9,8 +9,8 @@ CREATE TABLE payments (
     description varchar(500),
     request_date datetime,
     approved_date datetime,
-    created_at datetime,
-    updated_at datetime
+    create_at datetime,
+    update_at datetime
 );
 
 -- 유니크 키

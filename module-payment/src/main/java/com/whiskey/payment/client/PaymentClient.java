@@ -30,14 +30,14 @@ public class PaymentClient {
     private final ObjectMapper objectMapper;
     private final PaymentProperties properties;
 
-    public PaymentResponse confirmPayment(PaymentConfirmRequest request)
-        throws JsonProcessingException {
-        String requestUrl = properties.getBaseUrl();
+    public PaymentResponse confirmPayment(PaymentConfirmRequest request) throws JsonProcessingException {
+        String requestUrl = properties.getBaseUrl() + "/payment/confirm";
 
         log.info("Toss payment 결제 요청 - orderId: {}, amount: {}", request.orderId(), request.amount());
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Idempotency-Key", request.orderId());
 
         String auth = properties.getSecretKey() + ":";
         String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes(StandardCharsets.UTF_8));

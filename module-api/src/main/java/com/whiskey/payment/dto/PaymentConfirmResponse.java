@@ -11,7 +11,7 @@ public record PaymentConfirmResponse(
     String paymentKey,
     String paymentOrderId,
     BigDecimal totalAmount,
-    PaymentStatus status,
+    PaymentStatus paymentStatus,
     LocalDateTime approvedAt
 ) {
     public static PaymentConfirmResponse from(Payment payment) {
@@ -19,7 +19,7 @@ public record PaymentConfirmResponse(
             .paymentKey(payment.getPaymentKey())
             .paymentOrderId(payment.getPaymentOrderId())
             .totalAmount(payment.getAmount())
-            .status(payment.getStatus())
+            .paymentStatus(payment.getPaymentStatus())
             .approvedAt(LocalDateTime.now())
             .build();
     }

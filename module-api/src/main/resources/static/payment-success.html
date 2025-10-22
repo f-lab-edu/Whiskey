@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>결제 완료</title>
+  <meta charset="UTF-8">
+</head>
+<body>
+<h1>결제 처리 중...</h1>
+<div id="message"></div>
+
+<script>
+  async function confirmPayment() {
+    // URL에서 파라미터 추출
+    const urlParams = new URLSearchParams(window.location.search);
+    const paymentKey = urlParams.get('paymentKey');
+    const orderId = urlParams.get('orderId');
+    const amount = urlParams.get('amount');
+
+    console.log('paymentKey:', paymentKey);
+    console.log('orderId:', orderId);
+    console.log('amount:', amount);
+
+    if (!paymentKey || !orderId || !amount) {
+      document.getElementById('message').innerText = '결제 정보가 올바르지 않습니다.';
+      return;
+    }
+
+    // 백엔드 결제 승인 API 호출
+    try {
+      const response = await fetch('/api/payments/confirm', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI4Iiwicm9sZXMiOlsiUk9MRV9VU0VSIl0sImlhdCI6MTc2MTE0MTMwOSwiZXhwIjoxNzYxMTQxOTA5fQ.xc_Lfwm8tqFATE9VIuhL1M63FI4kdedtGoEpXRa7YS0'
+        },
+        body: JSON.stringify({
+          paymentKey: paymentKey,
+          orderId: orderId,
+          amount: amount
+        })
+      });
+
+      const data = await response.json();
+      console.log('결제 승인 결과:', data);
+
+      if (response.ok) {
+        document.getElementById('message').innerText = '결제가 완료되었습니다!';
+        // 성공 후 주문 목록으로 이동
+        setTimeout(() => {
+          window.location.href = '/orders';
+        }, 2000);
+      } else {
+        document.getElementById('message').innerText = '결제 승인 실패: ' + data.message;
+      }
+    } catch (error) {
+      console.error('결제 승인 에러:', error);
+      document.getElementById('message').innerText = '결제 승인 중 오류가 발생했습니다.';
+    }
+  }
+
+  // 페이지 로드 시 자동 실행
+  confirmPayment();
+</script>
+</body>
+</html>

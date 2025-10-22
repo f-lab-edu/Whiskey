@@ -48,7 +48,7 @@ public class Payment extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private PaymentStatus status;
+    private PaymentStatus paymentStatus;
 
     @Column
     private String description;
@@ -66,7 +66,7 @@ public class Payment extends BaseEntity {
         this.member = member;
         this.order = order;
         this.amount = amount;
-        this.status = PaymentStatus.PENDING;
+        this.paymentStatus = PaymentStatus.PENDING;
         this.description = description;
         this.requestDate = LocalDateTime.now();
         this.approvedDate = null;

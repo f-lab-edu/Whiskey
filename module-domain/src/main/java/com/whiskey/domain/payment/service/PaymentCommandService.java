@@ -6,13 +6,11 @@ import com.whiskey.domain.order.Order;
 import com.whiskey.domain.order.enums.OrderStatus;
 import com.whiskey.domain.order.repository.OrderRepository;
 import com.whiskey.domain.payment.Payment;
-import com.whiskey.domain.payment.dto.PaymentCommand;
-import com.whiskey.domain.payment.dto.PaymentInfo;
-import com.whiskey.domain.payment.dto.PaymentResult;
+import com.whiskey.domain.payment.dto.PaymentConfirmCommand;
+import com.whiskey.domain.payment.dto.PaymentPrepareCommand;
+import com.whiskey.domain.payment.dto.PaymentPrepareResult;
 import com.whiskey.domain.payment.repository.PaymentRepository;
 import com.whiskey.exception.ErrorCode;
-import jakarta.validation.constraints.NotNull;
-import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -28,7 +26,7 @@ public class PaymentCommandService {
     private final OrderRepository orderRepository;
 
     @Transactional
-    public PaymentResult createPayment(PaymentCommand command) {
+    public PaymentPrepareResult createPayment(PaymentPrepareCommand command) {
         // 1. 회원 확인
         Member member = checkExistMember(command.memberId());
 
@@ -62,7 +60,7 @@ public class PaymentCommandService {
             .build();
 
         paymentRepository.save(payment);
-        return new PaymentResult(payment.getPaymentOrderId(), payment.getAmount());
+        return new PaymentPrepareResult(payment.getPaymentOrderId(), payment.getAmount());
     }
 
     private Member checkExistMember(long memberId) {

@@ -48,7 +48,6 @@ public class OrderController {
     @PatchMapping("/order/{orderId}/cancel")
     @Operation(summary = "생성된 주문 취소", description = "생성된 주문을 취소하고 예약된 재고를 반환합니다.")
     public ApiResponse<Void> cancelOrder(@Parameter(description = "주문 ID") @PathVariable("orderId") Long orderId, @CurrentMemberId Long memberId) {
-        log.info("memberId={}, orderId={}", memberId, orderId);
         orderService.cancelOrder(orderId, memberId);
         return ApiResponse.success("생성된 주문 취소가 완료되었습니다.");
     }
