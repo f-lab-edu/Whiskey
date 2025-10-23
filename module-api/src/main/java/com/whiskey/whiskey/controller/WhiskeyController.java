@@ -1,5 +1,8 @@
 package com.whiskey.whiskey.controller;
 
+import com.whiskey.annotation.ActivityLog;
+import com.whiskey.domain.log.enums.ActivityType;
+import com.whiskey.domain.log.enums.TargetType;
 import com.whiskey.domain.review.dto.ReviewCursorRequest;
 import com.whiskey.domain.review.dto.ReviewInfo;
 import com.whiskey.domain.review.enums.ReviewFilter;
@@ -97,6 +100,11 @@ public class WhiskeyController {
     }
 
     @GetMapping("/whiskey/{id}")
+    @ActivityLog(
+        type = ActivityType.VIEW,
+        target = TargetType.WHISKEY,
+        targetId = "#id"
+    )
     @Operation(summary = "위스키 조회", description = "위스키 ID로 위스키 정보를 조회합니다.")
     public ApiResponse<WhiskeyResponse> get(@Parameter(description = "위스키 ID") @PathVariable("id") Long id) {
         WhiskeyInfo whiskeyInfo = whiskeyService.findById(id);
