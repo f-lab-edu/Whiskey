@@ -1,6 +1,7 @@
 package com.whiskey.whiskey.controller;
 
 import com.whiskey.annotation.ActivityLog;
+import com.whiskey.annotation.TargetId;
 import com.whiskey.domain.log.enums.ActivityType;
 import com.whiskey.domain.log.enums.TargetType;
 import com.whiskey.domain.review.dto.ReviewCursorRequest;
@@ -26,10 +27,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -100,13 +97,9 @@ public class WhiskeyController {
     }
 
     @GetMapping("/whiskey/{id}")
-    @ActivityLog(
-        type = ActivityType.VIEW,
-        target = TargetType.WHISKEY,
-        targetId = "#id"
-    )
+    @ActivityLog(type = ActivityType.VIEW, target = TargetType.WHISKEY)
     @Operation(summary = "위스키 조회", description = "위스키 ID로 위스키 정보를 조회합니다.")
-    public ApiResponse<WhiskeyResponse> get(@Parameter(description = "위스키 ID") @PathVariable("id") Long id) {
+    public ApiResponse<WhiskeyResponse> get(@Parameter(description = "위스키 ID") @PathVariable("id") @TargetId Long id) {
         WhiskeyInfo whiskeyInfo = whiskeyService.findById(id);
         WhiskeyResponse response = WhiskeyResponse.from(whiskeyInfo);
         return ApiResponse.success("위스키를 조회하였습니다.", response);

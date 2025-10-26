@@ -36,7 +36,7 @@ public class ActivityLog extends BaseEntity {
     @Column(nullable = false)
     private TargetType targetType;
 
-    @Column(nullable = false)
+    @Column
     private Long targetId;
 
     private String ipAddress;
