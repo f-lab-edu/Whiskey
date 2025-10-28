@@ -48,7 +48,7 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.POST, "/api/payments/prepare").hasAnyRole(Role.ADMIN.getRole(), Role.USER.getRole())
                     .requestMatchers("/api/test/**").permitAll()
                     .requestMatchers("/api/batch/**").permitAll()
-                    .requestMatchers("/test.html").permitAll()
+                    .requestMatchers("/request-payment.html", "/payment-success.html").permitAll()
                 ).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

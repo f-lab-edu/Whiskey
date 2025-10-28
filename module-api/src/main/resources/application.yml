@@ -35,6 +35,7 @@ order:
 toss:
   payment:
     secret-key: test_sk_pP2YxJ4K87apm2lqMegpVRGZwXLO
+    client-key: test_ck_pP2YxJ4K87Z9dKKBg9y0rRGZwXLO
     base-url: https://api.tosspayments.com/v1
     connect-timeout: 3000
     read-timeout: 10000

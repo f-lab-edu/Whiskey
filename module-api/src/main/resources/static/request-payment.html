@@ -7,34 +7,62 @@
 </head>
 <body>
 <h1>토스페이먼츠 테스트</h1>
-<button onclick="requestPayment()">결제하기</button>
+<div id="info">로딩중...</div>
+<div>
+  <label>주문 ID: <input type="number" id="orderId" value="5"/></label><br/>
+  <label>금액: <input type="number" id="amount" value="240000"/></label><br/>
+  <button onclick="requestPayment()">결제하기</button>
+</div>
 
 <script>
-  const clientKey = 'test_ck_pP2YxJ4K87Z9dKKBg9y0rRGZwXLO';
-  const tossPayments = TossPayments(clientKey);
+  let clientKey, token, memberId;
+  let tossPayments;
+
+  // 페이지 로드 시 설정 가져오기
+  async function loadConfig() {
+    const response = await fetch('/api/test/payment-config');
+    const config = await response.json();
+
+    clientKey = config.clientKey;
+    memberId = config.memberId;
+
+    tossPayments = TossPayments(clientKey);
+
+    document.getElementById('info').innerHTML =
+        `회원ID: ${memberId}<br/>Client Key: ${clientKey}`;
+  }
+
+  loadConfig();
 
   async function requestPayment() {
+    const orderId = document.getElementById('orderId').value;
+    const amount = document.getElementById('amount').value;
+
     // 1. 백엔드에서 paymentOrderId 받기
     const response = await fetch('/api/payments/prepare', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI4Iiwicm9sZXMiOlsiUk9MRV9VU0VSIl0sImlhdCI6MTc2MTE0MTMwOSwiZXhwIjoxNzYxMTQxOTA5fQ.xc_Lfwm8tqFATE9VIuhL1M63FI4kdedtGoEpXRa7YS0'
+        'bypass-jwt-auth': 'whisKey-dev'
       },
       body: JSON.stringify({
-        "orderId":5,
-        "amount":240000,
-        "description":null
+        orderId: parseInt(orderId),
+        amount: parseInt(amount),
+        description: null
       })
     });
+
+    console.log('Status:', response.status);
+    console.log('Headers:', response.headers);
+
     const data = await response.json();
     console.log(data);
 
     // 2. 토스 결제창 오픈
     tossPayments.requestPayment('카드', {
-      amount: data.amount,
-      orderId: data.orderId,
-      orderName: data.orderName || '테스트 주문',
+      amount: data.data.amount,
+      orderId: data.data.orderId,
+      orderName: data.data.orderName || '테스트 주문',
       successUrl: window.location.origin + '/payment-success',
       failUrl: window.location.origin + '/payment-fail',
     });
