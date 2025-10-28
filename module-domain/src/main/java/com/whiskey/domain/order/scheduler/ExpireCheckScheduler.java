@@ -1,7 +1,6 @@
 package com.whiskey.domain.order.scheduler;
 
 import com.whiskey.domain.order.service.OrderService;
-import jakarta.annotation.PostConstruct;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,9 +21,7 @@ public class ExpireCheckScheduler {
 
     @Scheduled(fixedDelay = 60000)
     public void expireCheck() {
-        log.info(">>> 스케줄러 실행! 시각: {}", java.time.LocalDateTime.now());
         Set<String> orderIds = getOrderIds();
-        log.info(">>> 만료 대상 주문 수: {}", orderIds.size());
 
         if(orderIds.isEmpty()) {
             log.debug("만료 대상 주문 없음");
@@ -38,7 +35,7 @@ public class ExpireCheckScheduler {
 
     private Set<String> getOrderIds() {
         ZSetOperations<String, String> zSetOperations = stringRedisTemplate.opsForZSet();
-        long nowTime = System.currentTimeMillis() / 1000;
+        long nowTime = System.currentTimeMillis();
 
         return zSetOperations.rangeByScore(EXPIRY_KEY, 0, nowTime);
     }
