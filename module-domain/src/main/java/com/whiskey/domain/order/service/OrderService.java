@@ -7,6 +7,9 @@ import com.whiskey.domain.order.dto.OrderResult;
 import com.whiskey.domain.order.enums.OrderStatus;
 import com.whiskey.domain.order.event.OrderExpiryRegisteredEvent;
 import com.whiskey.domain.order.repository.OrderRepository;
+import com.whiskey.domain.payment.Payment;
+import com.whiskey.domain.payment.enums.PaymentStatus;
+import com.whiskey.domain.payment.repository.PaymentRepository;
 import com.whiskey.domain.stock.repository.StockRepository;
 import com.whiskey.domain.stock.Stock;
 import com.whiskey.domain.stock.service.StockReservationService;
@@ -28,6 +31,7 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final StockRepository stockRepository;
+    private final PaymentRepository paymentRepository;
 
     private final StockReservationService stockReservationService;
     private final OrderExpiryService orderExpiryService;
@@ -103,5 +107,11 @@ public class OrderService {
         }
 
         order.expireReservation();
+
+        // 연관된 PENDING 상태 결제도 만료 처리
+        List<Payment> payments = paymentRepository.findByOrderAndPaymentStatus(order, PaymentStatus.PENDING);
+        if(!payments.isEmpty()) {
+            payments.forEach(Payment::expirePayment);
+        }
     }
 }

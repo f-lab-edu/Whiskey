@@ -31,8 +31,7 @@ public class PaymentCommandService {
         Member member = checkExistMember(command.memberId());
 
         // 2. 주문 조회
-        Order order = orderRepository.findById(command.orderId())
-            .orElseThrow(() -> ErrorCode.NOT_FOUND.exception("주문을 찾을 수 없습니다."));
+        Order order = orderRepository.findById(command.orderId()).orElseThrow(() -> ErrorCode.NOT_FOUND.exception("주문을 찾을 수 없습니다."));
 
         // 3. 내 주문이 맞는지 확인
         if(!order.getMemberId().equals(member.getId())) {
@@ -48,7 +47,7 @@ public class PaymentCommandService {
             throw new IllegalArgumentException("결제 금액이 일치하지 않습니다.");
         }
 
-        if(paymentRepository.existsByOrder(order)) {
+        if(paymentRepository.existsByOrder(order) || order.getOrderStatus() == OrderStatus.CONFIRMED) {
             throw new IllegalArgumentException("이미 결제된 주문입니다.");
         }
 

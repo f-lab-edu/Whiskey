@@ -71,4 +71,12 @@ public class Payment extends BaseEntity {
         this.requestDate = LocalDateTime.now();
         this.approvedDate = null;
     }
+
+    public void expirePayment() {
+        if(this.paymentStatus != PaymentStatus.PENDING) {
+            throw new IllegalStateException("대기 상태에서만 결제 취소가 가능합니다.");
+        }
+
+        this.paymentStatus = PaymentStatus.EXPIRED;
+    }
 }
