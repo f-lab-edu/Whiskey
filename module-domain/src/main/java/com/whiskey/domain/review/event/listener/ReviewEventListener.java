@@ -1,8 +1,8 @@
-package com.whiskey.domain.event.listener;
+package com.whiskey.domain.review.event.listener;
 
-import com.whiskey.domain.event.ReviewDeletedEvent;
-import com.whiskey.domain.event.ReviewRegisteredEvent;
-import com.whiskey.domain.event.ReviewUpdatedEvent;
+import com.whiskey.domain.review.event.ReviewDeletedEvent;
+import com.whiskey.domain.review.event.ReviewRegisteredEvent;
+import com.whiskey.domain.review.event.ReviewUpdatedEvent;
 import com.whiskey.domain.review.service.RatingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

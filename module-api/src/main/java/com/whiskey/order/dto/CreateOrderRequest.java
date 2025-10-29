@@ -7,9 +7,6 @@ import jakarta.validation.constraints.Positive;
 import java.util.List;
 
 public record CreateOrderRequest(
-    @NotNull(message = "사용자 ID는 필수입니다.")
-    Long userId,
-
     @NotEmpty(message = "주문 항목은 최소 1개 이상이어야 합니다.")
     @Valid
     List<OrderItem> items

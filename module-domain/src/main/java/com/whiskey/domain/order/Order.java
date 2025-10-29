@@ -1,7 +1,7 @@
 package com.whiskey.domain.order;
 
 import com.whiskey.domain.base.BaseEntity;
-import com.whiskey.domain.order.enums.OrderStatusType;
+import com.whiskey.domain.order.enums.OrderStatus;
 import com.whiskey.domain.stock.StockReservation;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -17,15 +17,17 @@ import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "orders")
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Order extends BaseEntity {
 
     @Column(nullable = false)
-    private Long userId;
+    private Long memberId;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<StockReservation> reservations = new ArrayList<>();
@@ -35,23 +37,25 @@ public class Order extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private OrderStatusType orderStatus;
+    private OrderStatus orderStatus;
 
     private String paymentId;
 
     @Column(nullable = false)
     private LocalDateTime expireAt;
 
+    @Column(name = "confirmed_at")
     private LocalDateTime confirmedAt;
 
+    @Column(name = "cancelled_at")
     private LocalDateTime cancelledAt;
 
-    public static Order of(Long userId, BigDecimal totalPrice, int expireMinutes) {
+    public static Order of(Long memberId, BigDecimal totalPrice, LocalDateTime expireMinutes) {
         Order order = new Order();
-        order.userId = userId;
+        order.memberId = memberId;
         order.totalPrice = totalPrice;
-        order.orderStatus = OrderStatusType.PENDING;
-        order.expireAt = LocalDateTime.now().plusMinutes(expireMinutes);
+        order.orderStatus = OrderStatus.PENDING;
+        order.expireAt = expireMinutes;
         return order;
     }
 
@@ -61,7 +65,7 @@ public class Order extends BaseEntity {
 
     public void confirmReservation(String paymentId) {
         checkConfirm();
-        this.orderStatus = OrderStatusType.CONFIRMED;
+        this.orderStatus = OrderStatus.CONFIRMED;
         this.paymentId = paymentId;
         this.confirmedAt = LocalDateTime.now();
 
@@ -70,21 +74,21 @@ public class Order extends BaseEntity {
 
     public void cancelReservation() {
         checkCancel();
-        this.orderStatus = OrderStatusType.CANCELLED;
+        this.orderStatus = OrderStatus.CANCELLED;
         this.cancelledAt = LocalDateTime.now();
 
         reservations.forEach(StockReservation::cancelByUser);
     }
 
-    public void expire() {
-        this.orderStatus = OrderStatusType.EXPIRED;
+    public void expireReservation() {
+        this.orderStatus = OrderStatus.EXPIRED;
         this.cancelledAt = LocalDateTime.now();
 
         reservations.forEach(StockReservation::cancelByExpiration);
     }
 
     private void checkConfirm() {
-        if(this.orderStatus != OrderStatusType.PENDING) {
+        if(this.orderStatus != OrderStatus.PENDING) {
             throw new IllegalStateException("대기 상태에서만 주문 확정이 가능합니다.");
         }
 
@@ -94,7 +98,7 @@ public class Order extends BaseEntity {
     }
 
     private void checkCancel() {
-        if(this.orderStatus == OrderStatusType.CANCELLED || this.orderStatus == OrderStatusType.EXPIRED) {
+        if(this.orderStatus == OrderStatus.CANCELLED || this.orderStatus == OrderStatus.EXPIRED) {
             throw new IllegalStateException("이미 취소된 주문입니다.");
         }
     }

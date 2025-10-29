@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>결제 성공</title>
+  <meta charset="UTF-8">
+</head>
+<body>
+<h1>✅ 결제 성공</h1>
+
+<div id="info">로딩중...</div>
+
+<div>
+  <button onclick="copyPaymentKey()">Payment Key 복사</button>
+  <button onclick="location.href='/request-payment.html'">다시 테스트하기</button>
+</div>
+
+<script>
+  // URL 파라미터 파싱
+  const urlParams = new URLSearchParams(window.location.search);
+  const paymentKey = urlParams.get('paymentKey');
+  const orderId = urlParams.get('orderId');
+  const amount = urlParams.get('amount');
+
+  // 화면에 표시
+  document.getElementById('info').innerHTML = `
+        <h3>결제 정보</h3>
+        <p><strong>Payment Key:</strong> ${paymentKey}</p>
+        <p><strong>주문 ID:</strong> ${orderId}</p>
+        <p><strong>금액:</strong> ${amount}원</p>
+    `;
+
+  function copyPaymentKey() {
+    navigator.clipboard.writeText(paymentKey).then(() => {
+      alert('Payment Key가 복사되었습니다!');
+    });
+  }
+
+  // 콘솔에도 출력
+  console.log('Payment Key:', paymentKey);
+  console.log('Order ID:', orderId);
+  console.log('Amount:', amount);
+</script>
+</body>
+</html>

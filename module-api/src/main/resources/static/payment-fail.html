@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>결제 실패</title>
+  <meta charset="UTF-8">
+</head>
+<body>
+<h1>❌ 결제 실패</h1>
+
+<div id="info">로딩중...</div>
+
+<div>
+  <button onclick="location.href='/request-payment.html'">다시 시도하기</button>
+</div>
+
+<script>
+  // URL 파라미터 파싱
+  const urlParams = new URLSearchParams(window.location.search);
+  const code = urlParams.get('code');
+  const message = urlParams.get('message');
+  const orderId = urlParams.get('orderId');
+
+  // 화면에 표시
+  document.getElementById('info').innerHTML = `
+        <h3>실패 정보</h3>
+        <p><strong>에러 코드:</strong> ${code}</p>
+        <p><strong>에러 메시지:</strong> ${message}</p>
+        <p><strong>주문 ID:</strong> ${orderId}</p>
+    `;
+
+  console.error('결제 실패:', { code, message, orderId });
+</script>
+</body>
+</html>
