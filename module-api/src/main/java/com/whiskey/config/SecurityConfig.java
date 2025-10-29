@@ -46,9 +46,10 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.POST, "/api/order").hasAnyRole(Role.ADMIN.getRole(), Role.USER.getRole())
                     .requestMatchers(HttpMethod.PATCH, "/api/order/{orderId}/cancel").hasAnyRole(Role.ADMIN.getRole(), Role.USER.getRole())
                     .requestMatchers(HttpMethod.POST, "/api/payments/prepare").hasAnyRole(Role.ADMIN.getRole(), Role.USER.getRole())
+                    .requestMatchers(HttpMethod.POST, "/api/payments/confirm").hasAnyRole(Role.ADMIN.getRole(), Role.USER.getRole())
                     .requestMatchers("/api/test/**").permitAll()
                     .requestMatchers("/api/batch/**").permitAll()
-                    .requestMatchers("/request-payment.html", "/payment-success.html").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/request-payment.html", "/api/payments/payment-success", "/api/payments/payment-fail").permitAll()
                 ).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

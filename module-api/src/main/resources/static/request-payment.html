@@ -63,8 +63,8 @@
       amount: data.data.amount,
       orderId: data.data.orderId,
       orderName: data.data.orderName || '테스트 주문',
-      successUrl: window.location.origin + '/payment-success',
-      failUrl: window.location.origin + '/payment-fail',
+      successUrl: window.location.origin + '/api/payments/payment-success',
+      failUrl: window.location.origin + '/api/payments/payment-fail',
     });
   }
 </script>

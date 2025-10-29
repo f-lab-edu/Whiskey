@@ -17,9 +17,12 @@ import jakarta.validation.Valid;
 import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -59,5 +62,31 @@ public class PaymentController {
 
         paymentFacade.confirmPayment(command);
         return ApiResponse.success("결제 승인에 성공했습니다.");
+    }
+
+    @GetMapping("/payment-success")
+    public String paymentSuccess(Model model, @RequestParam(name = "paymentKey") String paymentKey, @RequestParam(name = "orderId") String orderId, @RequestParam(name = "amount") Long amount) {
+        log.info("=== 결제 성공 ===");
+        log.info("payment key: {}", paymentKey);
+        log.info("orderId: {}", orderId);
+        log.info("amount: {}", amount);
+
+        model.addAttribute("paymentKey", paymentKey);
+        model.addAttribute("orderId", orderId);
+        model.addAttribute("amount", amount);
+        return "payment-success";
+    }
+
+    @GetMapping("/payment-fail")
+    public String paymentFail(Model model, @RequestParam(name = "paymentKey") String code, @RequestParam(name = "orderId") String message, @RequestParam(name = "amount") String orderId) {
+        log.error("=== 결제 실패 ===");
+        log.error("Error Code: {}", code);
+        log.error("Error Message: {}", message);
+        log.error("Order ID: {}", orderId);
+
+        model.addAttribute("code", code);
+        model.addAttribute("message", message);
+        model.addAttribute("orderId", orderId);
+        return "payment-fail";
     }
 }
