@@ -31,7 +31,7 @@ public class PaymentClient {
     private final PaymentProperties properties;
 
     public PaymentResponse confirmPayment(PaymentConfirmRequest request) throws JsonProcessingException {
-        String requestUrl = properties.getBaseUrl() + "/payment/confirm";
+        String requestUrl = properties.getBaseUrl() + "/payments/confirm";
 
         log.info("Toss payment 결제 요청 - orderId: {}, amount: {}", request.orderId(), request.amount());
 

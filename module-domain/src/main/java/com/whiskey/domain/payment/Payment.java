@@ -79,4 +79,14 @@ public class Payment extends BaseEntity {
 
         this.paymentStatus = PaymentStatus.EXPIRED;
     }
+
+    public void completePayment(String paymentKey) {
+        if(this.paymentStatus != PaymentStatus.PENDING) {
+            throw new IllegalStateException("PENDING 상태에서만 완료 처리가 가능합니다.");
+        }
+
+        this.paymentStatus = PaymentStatus.COMPLETED;
+        this.paymentKey = paymentKey;
+        this.approvedDate = LocalDateTime.now();
+    }
 }

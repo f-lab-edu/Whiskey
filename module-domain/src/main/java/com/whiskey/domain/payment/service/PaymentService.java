@@ -6,11 +6,11 @@ import com.whiskey.domain.order.Order;
 import com.whiskey.domain.order.enums.OrderStatus;
 import com.whiskey.domain.order.repository.OrderRepository;
 import com.whiskey.domain.payment.Payment;
-import com.whiskey.domain.payment.dto.PaymentConfirmCommand;
 import com.whiskey.domain.payment.dto.PaymentPrepareCommand;
 import com.whiskey.domain.payment.dto.PaymentPrepareResult;
 import com.whiskey.domain.payment.repository.PaymentRepository;
 import com.whiskey.exception.ErrorCode;
+import com.whiskey.payment.dto.PaymentResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class PaymentCommandService {
+public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final MemberRepository memberRepository;
@@ -60,6 +60,21 @@ public class PaymentCommandService {
 
         paymentRepository.save(payment);
         return new PaymentPrepareResult(payment.getPaymentOrderId(), payment.getAmount());
+    }
+
+    @Transactional
+    public void completePayment(Payment payment, Order order, PaymentResponse response) {
+        try {
+            payment.completePayment(response.paymentKey());
+            order.confirmReservation(payment.getPaymentOrderId());
+        }
+        catch (Exception e) {
+            log.error("결제 완료 처리 실패 - orderId: {}", order.getId(), e);
+
+            // 주문취소 로직 추가
+
+            throw new RuntimeException("결제는 승인되었으나 주문 처리에 실패했습니다. 고객센터에 문의해주세요.", e);
+        }
     }
 
     private Member checkExistMember(long memberId) {

@@ -63,6 +63,11 @@ public class Stock extends BaseEntity {
     // 주문 확정
     public void confirm(int reserveQuantity) {
         checkConfirm(reserveQuantity);
+
+        if(this.quantity < reserveQuantity) {
+            throw new IllegalArgumentException(String.format("재고가 부족합니다. (주문 : %d, 재고 : %d)", reserveQuantity, availableQuantity));
+        }
+
         this.quantity -= reserveQuantity;
         updateStatus();
     }

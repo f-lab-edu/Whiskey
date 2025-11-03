@@ -6,7 +6,7 @@ import com.whiskey.domain.payment.dto.PaymentConfirmCommand;
 import com.whiskey.domain.payment.dto.PaymentPrepareCommand;
 import com.whiskey.domain.payment.dto.PaymentPrepareResult;
 import com.whiskey.domain.payment.facade.PaymentFacade;
-import com.whiskey.domain.payment.service.PaymentCommandService;
+import com.whiskey.domain.payment.service.PaymentService;
 import com.whiskey.payment.dto.PaymentConfirmRequest;
 import com.whiskey.payment.dto.PaymentConfirmResponse;
 import com.whiskey.payment.dto.PaymentPrepareRequest;
@@ -31,8 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class PaymentController {
 
-    private final PaymentCommandService paymentCommandService;
-    private final MemberRepository memberRepository;
+    private final PaymentService paymentService;
     private final PaymentFacade paymentFacade;
 
     @PostMapping("/prepare")
@@ -45,7 +44,7 @@ public class PaymentController {
             request.description()
         );
 
-        PaymentPrepareResult result = paymentCommandService.createPayment(command);
+        PaymentPrepareResult result = paymentService.createPayment(command);
         PaymentPrepareResponse response = PaymentPrepareResponse.from(result);
         return ApiResponse.success("orderId 발급에 성공했습니다.", response);
     }

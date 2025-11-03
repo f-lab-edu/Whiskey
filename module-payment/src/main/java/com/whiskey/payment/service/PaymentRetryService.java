@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PaymentService {
+public class PaymentRetryService {
 
     private final PaymentClient paymentClient;
 
@@ -26,11 +26,11 @@ public class PaymentService {
     )
     public PaymentResponse confirmPayment(String paymentKey, String orderId, Long amount)
         throws JsonProcessingException {
-        PaymentConfirmRequest request = PaymentConfirmRequest.builder()
-            .paymentKey(paymentKey)
-            .orderId(orderId)
-            .amount(amount)
-            .build();
+        PaymentConfirmRequest request = new PaymentConfirmRequest(
+            paymentKey,
+            orderId,
+            amount
+        );
 
         return paymentClient.confirmPayment(request);
     }

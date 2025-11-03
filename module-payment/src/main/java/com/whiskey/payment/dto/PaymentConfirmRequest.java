@@ -1,8 +1,5 @@
 package com.whiskey.payment.dto;
 
-import lombok.Builder;
-
-@Builder
 public record PaymentConfirmRequest(
     String paymentKey,
     String orderId,
@@ -10,10 +7,6 @@ public record PaymentConfirmRequest(
 ) {
 
     public static PaymentConfirmRequest of(String paymentKey, String orderId, Long amount) {
-        return PaymentConfirmRequest.builder()
-            .paymentKey(paymentKey)
-            .orderId(orderId)
-            .amount(amount)
-            .build();
+        return new PaymentConfirmRequest(paymentKey, orderId, amount);
     }
 }
