@@ -3,9 +3,12 @@ package com.whiskey.payment.client;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.whiskey.payment.config.PaymentProperties;
+import com.whiskey.payment.dto.PaymentCancelRequest;
+import com.whiskey.payment.dto.PaymentCancelResponse;
 import com.whiskey.payment.dto.PaymentConfirmRequest;
 import com.whiskey.payment.dto.PaymentErrorResponse;
 import com.whiskey.payment.dto.PaymentResponse;
+import com.whiskey.payment.dto.PaymentStatusResponse;
 import com.whiskey.payment.exception.RetryablePaymentException;
 import com.whiskey.payment.exception.PaymentException;
 import java.nio.charset.StandardCharsets;
@@ -14,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -65,6 +69,49 @@ public class PaymentClient {
         catch (Exception e) {
             // 기타 에러, Retry 가능
             log.warn("Toss payment network error - orderId: {}, message: {}", request.orderId(), e.getMessage());
+            throw new RetryablePaymentException("기타 에러 : " + e.getMessage());
+        }
+    }
+
+    public PaymentStatusResponse checkPaymentStatus(String paymentKey) {
+        String requestUrl = properties.getBaseUrl() + "/payments/" + paymentKey;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        String auth = properties.getSecretKey() + ":";
+        String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes(StandardCharsets.UTF_8));
+        headers.set("Authorization", "Basic " + encodedAuth);
+        HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<PaymentStatusResponse> response = restTemplate.exchange(requestUrl, HttpMethod.GET, requestEntity, PaymentStatusResponse.class);
+            return response.getBody();
+        }
+        catch (Exception e) {
+            log.error("결제 조회 실패 - paymentKey: {}", paymentKey);
+            throw new RetryablePaymentException("기타 에러 : " + e.getMessage());
+        }
+    }
+
+    public PaymentCancelResponse cancelPayment(PaymentCancelRequest request) {
+        String requestUrl = properties.getBaseUrl() + "/payments/" + request.paymentKey() + "/cancel";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Idempotency-Key", request.orderId());
+
+        String auth = properties.getSecretKey() + ":";
+        String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes(StandardCharsets.UTF_8));
+        headers.set("Authorization", "Basic " + encodedAuth);
+        HttpEntity<PaymentCancelRequest> requestEntity = new HttpEntity<>(request, headers);
+
+        try {
+            ResponseEntity<PaymentCancelResponse> response = restTemplate.postForEntity(requestUrl, requestEntity, PaymentCancelResponse.class);
+            return response.getBody();
+        }
+        catch (Exception e) {
+            log.error("결제 취소 실패 - paymentKey: {}", request.paymentKey());
             throw new RetryablePaymentException("기타 에러 : " + e.getMessage());
         }
     }

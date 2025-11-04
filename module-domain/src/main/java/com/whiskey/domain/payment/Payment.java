@@ -89,4 +89,12 @@ public class Payment extends BaseEntity {
         this.paymentKey = paymentKey;
         this.approvedDate = LocalDateTime.now();
     }
+
+    public void cancelPayment() {
+        if(this.paymentStatus != PaymentStatus.COMPLETED) {
+            throw new IllegalStateException("완료 상태인 결제만 취소 처리가 가능합니다.");
+        }
+
+        this.paymentStatus = PaymentStatus.CANCELLED;
+    }
 }

@@ -1,7 +1,6 @@
 package com.whiskey.payment.controller;
 
 import com.whiskey.annotation.CurrentMemberId;
-import com.whiskey.domain.member.repository.MemberRepository;
 import com.whiskey.domain.payment.dto.PaymentConfirmCommand;
 import com.whiskey.domain.payment.dto.PaymentPrepareCommand;
 import com.whiskey.domain.payment.dto.PaymentPrepareResult;

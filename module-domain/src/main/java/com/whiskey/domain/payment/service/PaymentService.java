@@ -10,10 +10,15 @@ import com.whiskey.domain.payment.dto.PaymentPrepareCommand;
 import com.whiskey.domain.payment.dto.PaymentPrepareResult;
 import com.whiskey.domain.payment.repository.PaymentRepository;
 import com.whiskey.exception.ErrorCode;
+import com.whiskey.payment.client.PaymentClient;
+import com.whiskey.payment.dto.PaymentCancelRequest;
+import com.whiskey.payment.dto.PaymentCancelResponse;
 import com.whiskey.payment.dto.PaymentResponse;
+import com.whiskey.payment.dto.PaymentStatusResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -24,6 +29,8 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final MemberRepository memberRepository;
     private final OrderRepository orderRepository;
+
+    private final PaymentClient paymentClient;
 
     @Transactional
     public PaymentPrepareResult createPayment(PaymentPrepareCommand command) {
@@ -72,8 +79,39 @@ public class PaymentService {
             log.error("결제 완료 처리 실패 - orderId: {}", order.getId(), e);
 
             // 주문취소 로직 추가
+            try {
+                cancelPayment(payment, order, response);
+            }
+            catch (Exception e2) {
+                log.error("보상 트랜잭션 실패");
+            }
 
             throw new RuntimeException("결제는 승인되었으나 주문 처리에 실패했습니다. 고객센터에 문의해주세요.", e);
+        }
+    }
+
+    // completePayment 트랜잭션과 별도로 동작해야 함
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void cancelPayment(Payment payment, Order order, PaymentResponse response) {
+        PaymentStatusResponse statusResponse = paymentClient.checkPaymentStatus(response.paymentKey());
+
+        if(!statusResponse.isApproved()) {
+            log.info("결제가 승인 상태가 아님");
+            return;
+        }
+
+        PaymentCancelRequest cancelRequest = new PaymentCancelRequest(
+            response.paymentKey(),
+            response.orderId(),
+            "DB 저장 실패로 인한 결제 자동 취소 처리"
+        );
+
+        PaymentCancelResponse cancelResponse = paymentClient.cancelPayment(cancelRequest);
+
+        if("CANCELED".equals(cancelResponse.status())) {
+            payment.cancelPayment();
+            order.cancelReservation();
+            log.info("보상 트랜잭션 성공 - 결제 취소 완료");
         }
     }
 
