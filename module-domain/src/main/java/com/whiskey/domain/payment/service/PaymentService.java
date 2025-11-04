@@ -31,6 +31,7 @@ public class PaymentService {
     private final OrderRepository orderRepository;
 
     private final PaymentClient paymentClient;
+    private final PaymentCompensationService paymentCompensationService;
 
     @Transactional
     public PaymentPrepareResult createPayment(PaymentPrepareCommand command) {
@@ -80,38 +81,13 @@ public class PaymentService {
 
             // 주문취소 로직 추가
             try {
-                cancelPayment(payment, order, response);
+                paymentCompensationService.cancelPayment(payment, order, response);
             }
             catch (Exception e2) {
                 log.error("보상 트랜잭션 실패");
             }
 
             throw new RuntimeException("결제는 승인되었으나 주문 처리에 실패했습니다. 고객센터에 문의해주세요.", e);
-        }
-    }
-
-    // completePayment 트랜잭션과 별도로 동작해야 함
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void cancelPayment(Payment payment, Order order, PaymentResponse response) {
-        PaymentStatusResponse statusResponse = paymentClient.checkPaymentStatus(response.paymentKey());
-
-        if(!statusResponse.isApproved()) {
-            log.info("결제가 승인 상태가 아님");
-            return;
-        }
-
-        PaymentCancelRequest cancelRequest = new PaymentCancelRequest(
-            response.paymentKey(),
-            response.orderId(),
-            "DB 저장 실패로 인한 결제 자동 취소 처리"
-        );
-
-        PaymentCancelResponse cancelResponse = paymentClient.cancelPayment(cancelRequest);
-
-        if("CANCELED".equals(cancelResponse.status())) {
-            payment.cancelPayment();
-            order.cancelReservation();
-            log.info("보상 트랜잭션 성공 - 결제 취소 완료");
         }
     }
 
