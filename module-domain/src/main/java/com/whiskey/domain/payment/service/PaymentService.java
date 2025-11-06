@@ -6,19 +6,17 @@ import com.whiskey.domain.order.Order;
 import com.whiskey.domain.order.enums.OrderStatus;
 import com.whiskey.domain.order.repository.OrderRepository;
 import com.whiskey.domain.payment.Payment;
+import com.whiskey.domain.payment.dto.PaymentConfirmCommand;
 import com.whiskey.domain.payment.dto.PaymentPrepareCommand;
 import com.whiskey.domain.payment.dto.PaymentPrepareResult;
+import com.whiskey.domain.payment.enums.PaymentStatus;
 import com.whiskey.domain.payment.repository.PaymentRepository;
 import com.whiskey.exception.ErrorCode;
 import com.whiskey.payment.client.PaymentClient;
-import com.whiskey.payment.dto.PaymentCancelRequest;
-import com.whiskey.payment.dto.PaymentCancelResponse;
 import com.whiskey.payment.dto.PaymentResponse;
-import com.whiskey.payment.dto.PaymentStatusResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -89,6 +87,25 @@ public class PaymentService {
 
             throw new RuntimeException("결제는 승인되었으나 주문 처리에 실패했습니다. 고객센터에 문의해주세요.", e);
         }
+    }
+
+    @Transactional
+    public Payment validatePayment(PaymentConfirmCommand command) {
+        Payment payment = paymentRepository.findByPaymentOrderId(command.orderId());
+
+        if(!payment.getMember().getId().equals(command.memberId())) {
+            throw new IllegalArgumentException("memberId가 다릅니다.");
+        }
+
+        if(!payment.getAmount().equals(command.amount())) {
+            throw new IllegalArgumentException("결제 금액이 일치하지 않습니다.");
+        }
+
+        if(payment.getPaymentStatus() != PaymentStatus.PENDING) {
+            throw new IllegalArgumentException("결제 대기 중인 주문만 결제 승인이 가능합니다.");
+        }
+
+        return payment;
     }
 
     private Member checkExistMember(long memberId) {

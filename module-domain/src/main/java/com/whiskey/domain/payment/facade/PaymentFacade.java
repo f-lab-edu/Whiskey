@@ -28,7 +28,7 @@ public class PaymentFacade {
     // 결제 승인 요청
     public void confirmPayment(PaymentConfirmCommand command) {
         // 1. 결제와 주문 유효성 검사
-        Payment payment = validatePayment(command);
+        Payment payment = paymentService.validatePayment(command);
         Order order = orderRepository.findById(payment.getOrder().getId()).orElseThrow(() -> new IllegalStateException("주문을 찾을 수 없습니다."));
 
         // 2. PG 결제 승인 요청(트랜잭션 밖에서)
@@ -36,24 +36,6 @@ public class PaymentFacade {
 
         // 3. PG 결제 성공하면 DB 업데이트(트랜잭션 시작)
         paymentService.completePayment(payment, order, paymentResponse);
-    }
-
-    private Payment validatePayment(PaymentConfirmCommand command) {
-        Payment payment = paymentRepository.findByPaymentOrderId(command.orderId());
-
-        if(!payment.getMember().getId().equals(command.memberId())) {
-            throw new IllegalArgumentException("memberId가 다릅니다.");
-        }
-
-        if(!payment.getAmount().equals(command.amount())) {
-            throw new IllegalArgumentException("결제 금액이 일치하지 않습니다.");
-        }
-
-        if(payment.getPaymentStatus() != PaymentStatus.PENDING) {
-            throw new IllegalArgumentException("결제 대기 중인 주문만 결제 승인이 가능합니다.");
-        }
-
-        return payment;
     }
 
     private PaymentResponse requestPaymentConfirm(PaymentConfirmCommand command) {
