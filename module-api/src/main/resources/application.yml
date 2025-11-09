@@ -1,9 +1,6 @@
 spring:
-  datasource:
-    url: jdbc:mysql://localhost:3306/whiskey?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    username: root
-    password: root1234
+  profiles:
+    active: local
   jpa:
     hibernate:
       ddl-auto: none   # 또는 update
@@ -22,7 +19,7 @@ spring:
     jdbc:
       initialize-schema: always
 jwt:
-  secret-key: 0VFd9UZwXwLVaX40nCLLGuqyx6tcWzGz+KGHpDz9G+xTVOfNLlqbh4YqfKbzzKDQl94OCqP1MLm6dNuLJdY8qg==
+  secret-key: ${JWT_SECRET_KEY:0VFd9UZwXwLVaX40nCLLGuqyx6tcWzGz+KGHpDz9G+xTVOfNLlqbh4YqfKbzzKDQl94OCqP1MLm6dNuLJdY8qg==}
   access-token-validity: 600000  # 10분
   refresh-token-validity: 604800000  # 7일
 dev:
