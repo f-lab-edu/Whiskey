@@ -6,6 +6,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.math.BigDecimal;
 import lombok.AccessLevel;
@@ -15,12 +16,10 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Table(name = "stocks")
 public class Stock extends BaseEntity {
     @Column(nullable = false)
     private long whiskeyId;
-
-    @Column(nullable = false)
-    private String batchVersion;
 
     @Column(nullable = false)
     private int quantity;
@@ -38,10 +37,9 @@ public class Stock extends BaseEntity {
     @Version
     private Long version;
 
-    public static Stock of(Long whiskeyId, String batchVersion, int quantity, BigDecimal price) {
+    public static Stock of(Long whiskeyId, int quantity, BigDecimal price) {
         Stock stock = new Stock();
         stock.whiskeyId = whiskeyId;
-        stock.batchVersion = batchVersion;
         stock.quantity = quantity;
         stock.availableQuantity = quantity;
         stock.price = price;
@@ -65,6 +63,11 @@ public class Stock extends BaseEntity {
     // 주문 확정
     public void confirm(int reserveQuantity) {
         checkConfirm(reserveQuantity);
+
+        if(this.quantity < reserveQuantity) {
+            throw new IllegalArgumentException(String.format("재고가 부족합니다. (주문 : %d, 재고 : %d)", reserveQuantity, availableQuantity));
+        }
+
         this.quantity -= reserveQuantity;
         updateStatus();
     }

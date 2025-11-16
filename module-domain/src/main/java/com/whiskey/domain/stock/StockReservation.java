@@ -37,17 +37,19 @@ public class StockReservation extends BaseEntity {
     @Column(name = "expire_at")
     private LocalDateTime expireAt;
 
+    @Column(name = "confirmed_at")
     private LocalDateTime confirmedAt;
 
+    @Column(name = "cancelled_at")
     private LocalDateTime cancelledAt;
 
-    public static StockReservation create(Stock stock, Order order, int quantity, int expireMinutes) {
+    public static StockReservation create(Stock stock, Order order, int quantity, LocalDateTime expireAt) {
         StockReservation reservation = new StockReservation();
         reservation.stock = stock;
         reservation.order = order;
         reservation.reservedQuantity = quantity;
         reservation.reservationStatus = ReservationStatus.RESERVED;
-        reservation.expireAt = LocalDateTime.now().plusMinutes(expireMinutes);
+        reservation.expireAt = expireAt;
 
         stock.reserve(quantity);
         order.addReservation(reservation);

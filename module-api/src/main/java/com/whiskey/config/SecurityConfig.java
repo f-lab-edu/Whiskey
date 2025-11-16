@@ -43,8 +43,13 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/api/whiskey/{id}/reviews").hasAnyRole(Role.ADMIN.getRole(), Role.USER.getRole())
                     .requestMatchers(HttpMethod.DELETE, "/api/review/{id}").hasAnyRole(Role.ADMIN.getRole(), Role.USER.getRole())
                     .requestMatchers(HttpMethod.GET, "/api/test").hasAnyRole(Role.ADMIN.getRole(), Role.USER.getRole())
+                    .requestMatchers(HttpMethod.POST, "/api/order").hasAnyRole(Role.ADMIN.getRole(), Role.USER.getRole())
+                    .requestMatchers(HttpMethod.PATCH, "/api/order/{orderId}/cancel").hasAnyRole(Role.ADMIN.getRole(), Role.USER.getRole())
+                    .requestMatchers(HttpMethod.POST, "/api/payments/prepare").hasAnyRole(Role.ADMIN.getRole(), Role.USER.getRole())
+                    .requestMatchers(HttpMethod.POST, "/api/payments/confirm").hasAnyRole(Role.ADMIN.getRole(), Role.USER.getRole())
                     .requestMatchers("/api/test/**").permitAll()
                     .requestMatchers("/api/batch/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/request-payment.html", "/api/payments/payment-success", "/api/payments/payment-fail").permitAll()
                 ).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
