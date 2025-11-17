@@ -1,16 +1,37 @@
-version: '3.8'
-
 services:
   mysql:
     image: mysql:8.0
-    container_name: local-mysql
+    container_name: mysql-local
     ports:
-      - "3306:3306"
+      - "127.0.0.1:3306:3306"
     environment:
       MYSQL_ROOT_PASSWORD: root1234
       MYSQL_DATABASE: whiskey
+      MYSQL_ROOT_HOST: '%'
     volumes:
       - mysql-data:/var/lib/mysql
+    networks:
+      - whiskey-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis-local
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes --requirepass ""
+    restart: unless-stopped
+    networks:
+      - whiskey-network
 
 volumes:
   mysql-data:
+    name: whiskey_mysql_data
+  redis-data:
+    name: whiskey_redis_data
+
+networks:
+  whiskey-network:
+    name: whiskey-network
+    driver: bridge
