@@ -9,6 +9,7 @@ public enum MaltType {
     TENNESSEE_WHISKEY("TENNESSEE_WHISKEY"),
     BOURBON("BOURBON"),
     RYE("RYE"),
+    PURE_POT_STILL("PURE_POT_STILL"),
     CANADIAN("CANADIAN");
 
     private final String value;
