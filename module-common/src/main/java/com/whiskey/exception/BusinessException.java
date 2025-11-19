@@ -1,5 +1,8 @@
 package com.whiskey.exception;
 
+import lombok.Getter;
+
+@Getter
 public class BusinessException extends RuntimeException {
     private final ErrorCode errorCode;
     private final Object data;
@@ -20,13 +23,5 @@ public class BusinessException extends RuntimeException {
         super(message);
         this.errorCode = errorCode;
         this.data = data;
-    }
-
-    public ErrorCode getErrorCode() {
-        return errorCode;
-    }
-
-    public Object getData() {
-        return data;
     }
 }
