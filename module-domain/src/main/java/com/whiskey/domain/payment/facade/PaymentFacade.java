@@ -3,9 +3,12 @@ package com.whiskey.domain.payment.facade;
 import com.whiskey.domain.order.Order;
 import com.whiskey.domain.order.repository.OrderRepository;
 import com.whiskey.domain.payment.Payment;
+import com.whiskey.domain.payment.dto.PaymentCompensationRequest;
+import com.whiskey.domain.payment.dto.PaymentCompleteRequest;
 import com.whiskey.domain.payment.dto.PaymentConfirmCommand;
 import com.whiskey.domain.payment.enums.PaymentStatus;
 import com.whiskey.domain.payment.repository.PaymentRepository;
+import com.whiskey.domain.payment.service.PaymentCompensationService;
 import com.whiskey.domain.payment.service.PaymentService;
 import com.whiskey.payment.client.PaymentClient;
 import com.whiskey.payment.dto.PaymentConfirmRequest;
@@ -24,6 +27,7 @@ public class PaymentFacade {
 
     private final PaymentClient paymentClient;
     private final PaymentService paymentService;
+    private final PaymentCompensationService paymentCompensationService;
 
     // 결제 승인 요청
     public void confirmPayment(PaymentConfirmCommand command) {
@@ -35,7 +39,25 @@ public class PaymentFacade {
         PaymentResponse paymentResponse = requestPaymentConfirm(command);
 
         // 3. PG 결제 성공하면 DB 업데이트(트랜잭션 시작)
-        paymentService.completePayment(payment, order, paymentResponse);
+        PaymentCompleteRequest request = PaymentCompleteRequest.from(payment, order, paymentResponse);
+
+        try {
+            paymentService.completePayment(request);
+        }
+        catch (Exception e) {
+            log.error("결제 완료 처리 실패 - orderId: {}", order.getId(), e);
+
+            PaymentCompensationRequest compensationRequest = request.toCompensationRequest(payment.getId(), order.getId());
+
+            try {
+                paymentCompensationService.cancelPayment(compensationRequest);
+            }
+            catch (Exception e2) {
+                log.error("보상 트랜잭션 실패");
+            }
+
+            throw new RuntimeException("결제는 승인되었으나 주문 처리에 실패했습니다. 고객센터에 문의해주세요.", e);
+        }
     }
 
     private PaymentResponse requestPaymentConfirm(PaymentConfirmCommand command) {
