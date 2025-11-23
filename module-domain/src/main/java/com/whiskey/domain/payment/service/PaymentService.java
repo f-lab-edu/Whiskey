@@ -6,6 +6,8 @@ import com.whiskey.domain.order.Order;
 import com.whiskey.domain.order.enums.OrderStatus;
 import com.whiskey.domain.order.repository.OrderRepository;
 import com.whiskey.domain.payment.Payment;
+import com.whiskey.domain.payment.dto.PaymentCompensationRequest;
+import com.whiskey.domain.payment.dto.PaymentCompleteRequest;
 import com.whiskey.domain.payment.dto.PaymentConfirmCommand;
 import com.whiskey.domain.payment.dto.PaymentPrepareCommand;
 import com.whiskey.domain.payment.dto.PaymentPrepareResult;
@@ -69,29 +71,19 @@ public class PaymentService {
     }
 
     @Transactional
-    public void completePayment(Payment payment, Order order, PaymentResponse response) {
-        try {
-            payment.completePayment(response.paymentKey());
-            order.confirmReservation(payment.getPaymentOrderId());
-        }
-        catch (Exception e) {
-            log.error("결제 완료 처리 실패 - orderId: {}", order.getId(), e);
+    public void completePayment(PaymentCompleteRequest request) {
+        Payment payment = paymentRepository.findByPaymentOrderId(request.paymentOrderId()).orElseThrow(() -> new IllegalStateException("결제 정보를 찾을 수 없습니다"));
+        Order order = orderRepository.findById(request.orderId()).orElseThrow(() -> new IllegalStateException("주문 정보를 찾을 수 없습니다"));
 
-            // 주문취소 로직 추가
-            try {
-                paymentCompensationService.cancelPayment(payment, order, response);
-            }
-            catch (Exception e2) {
-                log.error("보상 트랜잭션 실패");
-            }
-
-            throw new RuntimeException("결제는 승인되었으나 주문 처리에 실패했습니다. 고객센터에 문의해주세요.", e);
-        }
+        // 비즈니스 로직에만 집중
+        // 예외 발생시 트랜잭션 롤백, PaymentFacade로 던져짐
+        payment.completePayment(payment.getPaymentKey());
+        order.confirmReservation(payment.getPaymentOrderId());
     }
 
     @Transactional
     public Payment validatePayment(PaymentConfirmCommand command) {
-        Payment payment = paymentRepository.findByPaymentOrderId(command.orderId());
+        Payment payment = paymentRepository.findByPaymentOrderId(command.orderId()).orElseThrow(() -> new IllegalStateException("결제 정보를 찾을 수 없습니다"));
 
         if(!payment.getMember().getId().equals(command.memberId())) {
             throw new IllegalArgumentException("memberId가 다릅니다.");
