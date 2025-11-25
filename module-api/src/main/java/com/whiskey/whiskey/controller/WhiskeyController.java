@@ -9,6 +9,7 @@ import com.whiskey.domain.review.dto.ReviewInfo;
 import com.whiskey.domain.review.enums.ReviewFilter;
 import com.whiskey.domain.review.service.ReviewService;
 import com.whiskey.domain.whiskey.dto.CaskCommand;
+import com.whiskey.domain.whiskey.dto.WhiskeyCursorResponse;
 import com.whiskey.domain.whiskey.dto.WhiskeyInfo;
 import com.whiskey.domain.whiskey.dto.WhiskeyCommand;
 import com.whiskey.domain.whiskey.dto.WhiskeySearchCondition;
@@ -22,7 +23,9 @@ import com.whiskey.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -107,7 +110,7 @@ public class WhiskeyController {
 
     @GetMapping("/whiskey")
     @Operation(summary = "위스키 목록 조회", description = "위스키 목록을 조회할 수 있습니다. 또, 증류소, 이름, 생산국가, 연도, 몰트 타입, 도수, 용량 등의 정보로 검색도 가능합니다.")
-    public ApiResponse<List<WhiskeyResponse>> list(@Valid WhiskeySearchRequest whiskeyDto) {
+    public ApiResponse<WhiskeyCursorResponse<WhiskeyResponse>> list(@Valid WhiskeySearchRequest whiskeyDto) {
         WhiskeySearchCondition condition = new WhiskeySearchCondition(
             whiskeyDto.distillery(),
             whiskeyDto.name(),
@@ -116,19 +119,28 @@ public class WhiskeyController {
             whiskeyDto.maltType(),
             whiskeyDto.abv(),
             whiskeyDto.volume(),
-            whiskeyDto.description()
+            whiskeyDto.description(),
+            whiskeyDto.cursor(),
+            whiskeyDto.size()
         );
 
-        List<WhiskeyInfo> whiskeys = whiskeyService.searchWhiskeys(condition);
-        List<WhiskeyResponse> responses = WhiskeyResponse.from(whiskeys);
+        WhiskeyCursorResponse<WhiskeyInfo> whiskeys = whiskeyService.searchWhiskeys(condition);
+
+        WhiskeyCursorResponse<WhiskeyResponse> responses = WhiskeyCursorResponse.of(
+            whiskeys.data().stream().map(WhiskeyResponse::from).collect(Collectors.toList()),
+            whiskeys.nextCursor(),
+            whiskeys.hasNext()
+        );
+
         return ApiResponse.success("위스키 목록을 조회하였습니다.", responses);
     }
 
     @GetMapping("/whiskey/{id}/reviews")
+    @Operation(summary = "위스키 리뷰 조회", description = "위스키에 등록된 리뷰를 조회할 수 있습니다.")
     public ApiResponse<ReviewCursorResponse<ReviewResponse>> reviews(
-        @PathVariable("id") Long id,
+        @PathVariable("id") @Positive Long id,
         @RequestParam(name = "cursor", required = false) String cursor,
-        @RequestParam(name = "size", defaultValue = "7") int size,
+        @RequestParam(name = "size", defaultValue = "7") @Max(50) int size,
         @RequestParam(name = "filter", defaultValue = "ACTIVE") String filter) {
 
         ReviewCursorRequest reviewRequest = ReviewCursorRequest.of(cursor, size, ReviewFilter.valueOf(filter));
