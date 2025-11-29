@@ -1,6 +1,7 @@
 package com.whiskey.domain.whiskey.repository;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.whiskey.domain.whiskey.QCask;
 import com.whiskey.domain.whiskey.QWhiskey;
@@ -28,7 +29,8 @@ public class WhiskeyRepositoryImpl implements WhiskeyRepositoryCustom {
     @Override
     public List<Whiskey> searchWhiskeys(WhiskeySearchCondition whiskeyDto) {
         QWhiskey whiskey = QWhiskey.whiskey;
-        return queryFactory
+
+        JPAQuery<Whiskey> query = queryFactory
             .selectFrom(whiskey)
             .where(
                 distilleryContains(whiskeyDto.distillery()),
@@ -37,7 +39,13 @@ public class WhiskeyRepositoryImpl implements WhiskeyRepositoryCustom {
                 ageEquals(whiskeyDto.age()),
                 maltTypeEquals(whiskeyDto.maltType()),
                 volumeEquals(whiskeyDto.volume())
-            ).fetch();
+            );
+
+        if(whiskeyDto.cursor() != null) {
+            query.where(whiskey.id.lt(whiskeyDto.cursor()));
+        }
+
+        return query.orderBy(whiskey.id.desc()).limit(whiskeyDto.size() + 1).fetch();
     }
 
     @Override

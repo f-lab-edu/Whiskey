@@ -55,6 +55,8 @@ public class ReviewService {
     }
 
     public ReviewCursorResponse<ReviewInfo> getLatestReviews(long whiskeyId, ReviewCursorRequest reviewRequest) {
+        whiskeyRepository.findById(whiskeyId).orElseThrow(() -> ErrorCode.NOT_FOUND.exception("위스키를 찾을 수 없습니다."));
+
         Long cursorId = null;
 
         if(reviewRequest.cursor() != null) {
