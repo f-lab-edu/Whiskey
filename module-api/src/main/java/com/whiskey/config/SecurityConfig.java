@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -16,6 +17,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -29,27 +31,30 @@ public class SecurityConfig {
             .authorizeHttpRequests(
                 authorize -> authorize
                     .requestMatchers("/swagger-ui/**", "/swagger-resources/**", "/v3/api-docs/**", "/v3/api-docs").permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/members").permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/auth/token/refresh").permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/members/{id}").hasAnyRole(Role.ADMIN.getRole(), Role.USER.getRole())
-                    .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/whiskey").hasAnyRole(Role.ADMIN.getRole(), Role.USER.getRole())
-                    .requestMatchers(HttpMethod.PUT,"/api/whiskey/{id}").hasAnyRole(Role.ADMIN.getRole(), Role.USER.getRole())
-                    .requestMatchers(HttpMethod.DELETE, "/api/whiskey/{id}").hasAnyRole(Role.ADMIN.getRole(), Role.USER.getRole())
-                    .requestMatchers(HttpMethod.GET, "/api/whiskey/{id}").hasAnyRole(Role.ADMIN.getRole(), Role.USER.getRole())
-                    .requestMatchers(HttpMethod.GET, "/api/whiskey").hasAnyRole(Role.ADMIN.getRole(), Role.USER.getRole())
-                    .requestMatchers(HttpMethod.POST, "/api/review").hasAnyRole(Role.ADMIN.getRole(), Role.USER.getRole())
-                    .requestMatchers(HttpMethod.PUT, "/api/review/{id}").hasAnyRole(Role.ADMIN.getRole(), Role.USER.getRole())
-                    .requestMatchers(HttpMethod.GET, "/api/whiskey/{id}/reviews").hasAnyRole(Role.ADMIN.getRole(), Role.USER.getRole())
-                    .requestMatchers(HttpMethod.DELETE, "/api/review/{id}").hasAnyRole(Role.ADMIN.getRole(), Role.USER.getRole())
-                    .requestMatchers(HttpMethod.GET, "/api/test").hasAnyRole(Role.ADMIN.getRole(), Role.USER.getRole())
-                    .requestMatchers(HttpMethod.POST, "/api/order").hasAnyRole(Role.ADMIN.getRole(), Role.USER.getRole())
-                    .requestMatchers(HttpMethod.PATCH, "/api/order/{orderId}/cancel").hasAnyRole(Role.ADMIN.getRole(), Role.USER.getRole())
-                    .requestMatchers(HttpMethod.POST, "/api/payments/prepare").hasAnyRole(Role.ADMIN.getRole(), Role.USER.getRole())
-                    .requestMatchers(HttpMethod.POST, "/api/payments/confirm").hasAnyRole(Role.ADMIN.getRole(), Role.USER.getRole())
-                    .requestMatchers("/api/test/**").permitAll()
-                    .requestMatchers("/api/batch/**").permitAll()
+                    .requestMatchers("/api/test/**", "/api/batch/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "/request-payment.html", "/api/payments/payment-success", "/api/payments/payment-fail").permitAll()
+
+                    // Member
+                    .requestMatchers(HttpMethod.POST, "/api/members").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/members/{id}").authenticated()
+
+                    // Authentication
+                    .requestMatchers(HttpMethod.POST, "/api/auth/token/refresh", "/api/auth/login").permitAll()
+
+                    // Whiskey (R만 USER, ADMIN 가능, CUD는 ADMIN만)
+                    .requestMatchers(HttpMethod.GET, "/api/whiskey/**").authenticated()
+                    .requestMatchers("/api/whiskey/**").hasRole(Role.ADMIN.getRole())
+
+                    // Reviews
+                    .requestMatchers(HttpMethod.GET, "/api/whiskey/{id}/reviews").authenticated()
+                    .requestMatchers("/api/reviews/**").authenticated()
+
+                    // Order
+                    .requestMatchers(HttpMethod.POST, "/api/order").authenticated()
+                    .requestMatchers(HttpMethod.PATCH, "/api/order/{orderId}/cancel").authenticated()
+
+                    // Payment
+                    .requestMatchers(HttpMethod.POST, "/api/payments/**").authenticated()
                 ).addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
