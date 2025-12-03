@@ -63,10 +63,9 @@ public class Order extends BaseEntity {
         this.reservations.add(reservation);
     }
 
-    public void confirmReservation(String paymentId) {
+    public void confirmReservation() {
         checkConfirm();
         this.orderStatus = OrderStatus.CONFIRMED;
-        this.paymentId = paymentId;
         this.confirmedAt = LocalDateTime.now();
 
         reservations.forEach(StockReservation::confirm);

@@ -6,7 +6,6 @@ import com.whiskey.domain.order.Order;
 import com.whiskey.domain.order.enums.OrderStatus;
 import com.whiskey.domain.order.repository.OrderRepository;
 import com.whiskey.domain.payment.Payment;
-import com.whiskey.domain.payment.dto.PaymentCompensationRequest;
 import com.whiskey.domain.payment.dto.PaymentCompleteRequest;
 import com.whiskey.domain.payment.dto.PaymentConfirmCommand;
 import com.whiskey.domain.payment.dto.PaymentPrepareCommand;
@@ -14,8 +13,6 @@ import com.whiskey.domain.payment.dto.PaymentPrepareResult;
 import com.whiskey.domain.payment.enums.PaymentStatus;
 import com.whiskey.domain.payment.repository.PaymentRepository;
 import com.whiskey.exception.ErrorCode;
-import com.whiskey.payment.client.PaymentClient;
-import com.whiskey.payment.dto.PaymentResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,9 +26,6 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final MemberRepository memberRepository;
     private final OrderRepository orderRepository;
-
-    private final PaymentClient paymentClient;
-    private final PaymentCompensationService paymentCompensationService;
 
     @Transactional
     public PaymentPrepareResult createPayment(PaymentPrepareCommand command) {
@@ -73,12 +67,10 @@ public class PaymentService {
     @Transactional
     public void completePayment(PaymentCompleteRequest request) {
         Payment payment = paymentRepository.findByPaymentOrderId(request.paymentOrderId()).orElseThrow(() -> new IllegalStateException("결제 정보를 찾을 수 없습니다"));
-        Order order = orderRepository.findById(request.orderId()).orElseThrow(() -> new IllegalStateException("주문 정보를 찾을 수 없습니다"));
 
         // 비즈니스 로직에만 집중
         // 예외 발생시 트랜잭션 롤백, PaymentFacade로 던져짐
         payment.completePayment(payment.getPaymentKey());
-        order.confirmReservation(payment.getPaymentOrderId());
     }
 
     @Transactional
