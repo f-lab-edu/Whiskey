@@ -1,0 +1,1 @@
+ALTER TABLE payments MODIFY COLUMN payment_status enum('PENDING', 'COMPLETED', 'FAILED', 'EXPIRED', 'CANCELLED');

@@ -86,6 +86,20 @@ public class Order extends BaseEntity {
         reservations.forEach(StockReservation::cancelByExpiration);
     }
 
+    public void validatePayment(Long memberId, BigDecimal totalPrice) {
+        if(!this.memberId.equals(memberId)) {
+            throw new IllegalArgumentException("내 주문만 결제할 수 있습니다.");
+        }
+
+        if(this.orderStatus != OrderStatus.PENDING) {
+            throw new IllegalArgumentException("결제 대기 중인 주문이 아닙니다.");
+        }
+
+        if(this.totalPrice.compareTo(totalPrice) != 0) {
+            throw new IllegalArgumentException("결제 금액이 일치하지 않습니다.");
+        }
+    }
+
     private void checkConfirm() {
         if(this.orderStatus != OrderStatus.PENDING) {
             throw new IllegalStateException("대기 상태에서만 주문 확정이 가능합니다.");
