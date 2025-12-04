@@ -114,4 +114,14 @@ public class OrderService {
             payments.forEach(Payment::expirePayment);
         }
     }
+
+    @Transactional
+    public void confirmReservation(long orderId) {
+        Order order = getOrder(orderId);
+        order.confirmReservation();
+    }
+
+    public Order getOrder(Long orderId) {
+        return orderRepository.findById(orderId).orElseThrow(() -> ErrorCode.NOT_FOUND.exception("존재하지 않는 주문입니다."));
+    }
 }
