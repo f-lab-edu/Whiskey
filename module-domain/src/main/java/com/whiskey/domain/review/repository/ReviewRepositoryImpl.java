@@ -6,13 +6,11 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.whiskey.domain.member.QMember;
 import com.whiskey.domain.review.QReview;
 import com.whiskey.domain.review.Review;
+import com.whiskey.domain.review.dto.ReviewCursorRequest;
 import com.whiskey.domain.review.enums.ReviewFilter;
 import com.whiskey.domain.whiskey.QWhiskey;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -26,32 +24,7 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
     }
 
     @Override
-    public Page<Review> reviews(long whiskeyId, Pageable pageable) {
-         QReview review = QReview.review;
-         QMember member = QMember.member;
-         QWhiskey whiskey = QWhiskey.whiskey;
-
-        List<Review> reviews = queryFactory
-            .selectFrom(review)
-            .join(review.member, member).fetchJoin()
-            .join(review.whiskey, whiskey).fetchJoin()
-            .where(review.whiskey.id.eq(whiskeyId))
-            .orderBy(review.createAt.desc())
-            .offset(pageable.getOffset())
-            .limit(pageable.getPageSize())
-            .fetch();
-
-        Long total = queryFactory
-            .select(review.count())
-            .from(review)
-            .where(review.whiskey.id.eq(whiskeyId))
-            .fetchOne();
-
-        return new PageImpl<>(reviews, pageable, total);
-    }
-
-    @Override
-    public List<Review> findLatestReviews(long whiskeyId, Long cursorId, int size, ReviewFilter filter) {
+    public List<Review> findLatestReviews(ReviewCursorRequest request) {
         QReview review = QReview.review;
         QMember member = QMember.member;
         QWhiskey whiskey = QWhiskey.whiskey;
@@ -61,15 +34,63 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
             .join(review.member, member).fetchJoin()
             .join(review.whiskey, whiskey).fetchJoin()
             .where(
-                review.whiskey.id.eq(whiskeyId),
-                reviewCondition(filter)
+                review.whiskey.id.eq(request.whiskeyId()),
+                reviewCondition(request.filter())
             );
 
-        if(cursorId != null) {
-            query.where(review.id.lt(cursorId));
+        if(request.cursor() != null) {
+            query.where(review.id.lt(request.getCursorId()));
         }
 
-        return query.orderBy(review.id.desc()).limit(size + 1).fetch();
+        return query.orderBy(review.id.desc()).limit(request.size() + 1).fetch();
+    }
+
+    @Override
+    public List<Review> findByHighestRating(ReviewCursorRequest request) {
+        QReview review = QReview.review;
+        QMember member = QMember.member;
+        QWhiskey whiskey = QWhiskey.whiskey;
+
+        JPAQuery<Review> query = queryFactory
+            .selectFrom(review)
+            .join(review.member, member).fetchJoin()
+            .join(review.whiskey, whiskey).fetchJoin()
+            .where(
+                review.whiskey.id.eq(request.whiskeyId()),
+                reviewCondition(request.filter()),
+                ratingHighCursorCondition(request)
+            )
+            .orderBy(
+                review.starRate.desc(),
+                review.id.desc()
+            )
+            .limit(request.size() + 1);
+
+        return query.fetch();
+    }
+
+    @Override
+    public List<Review> findByLowestRating(ReviewCursorRequest request) {
+        QReview review = QReview.review;
+        QMember member = QMember.member;
+        QWhiskey whiskey = QWhiskey.whiskey;
+
+        JPAQuery<Review> query = queryFactory
+            .selectFrom(review)
+            .join(review.member, member).fetchJoin()
+            .join(review.whiskey, whiskey).fetchJoin()
+            .where(
+                review.whiskey.id.eq(request.whiskeyId()),
+                reviewCondition(request.filter()),
+                ratingLowCursorCondition(request)
+            )
+            .orderBy(
+                review.starRate.asc(),
+                review.id.desc()
+            )
+            .limit(request.size() + 1);
+
+        return query.fetch();
     }
 
     private BooleanExpression reviewCondition(ReviewFilter filter) {
@@ -78,5 +99,31 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
             case DELETED -> QReview.review.deletedAt.isNotNull();
             case ALL -> null;
         };
+    }
+
+    private BooleanExpression ratingHighCursorCondition(ReviewCursorRequest request) {
+        if(request.cursor() == null) {
+            return null;
+        }
+
+        Integer cursorRating = request.getRatingCursorId();
+        Long cursorId = request.getCursorId();
+
+        QReview review = QReview.review;
+
+        return review.starRate.lt(cursorRating).or(review.starRate.eq(cursorRating).and(review.id.lt(cursorId)));
+    }
+
+    private BooleanExpression ratingLowCursorCondition(ReviewCursorRequest request) {
+        if(request.cursor() == null) {
+            return null;
+        }
+
+        Integer cursorRating = request.getRatingCursorId();
+        Long cursorId = request.getCursorId();
+
+        QReview review = QReview.review;
+
+        return review.starRate.eq(cursorRating).or(review.starRate.eq(cursorRating).and(review.id.lt(cursorId)));
     }
 }

@@ -6,7 +6,6 @@ import com.whiskey.domain.log.enums.ActivityType;
 import com.whiskey.domain.log.enums.TargetType;
 import com.whiskey.domain.review.dto.ReviewCursorRequest;
 import com.whiskey.domain.review.dto.ReviewInfo;
-import com.whiskey.domain.review.enums.ReviewFilter;
 import com.whiskey.domain.review.service.ReviewService;
 import com.whiskey.domain.whiskey.dto.CaskCommand;
 import com.whiskey.domain.whiskey.dto.WhiskeyCursorResponse;
@@ -14,6 +13,7 @@ import com.whiskey.domain.whiskey.dto.WhiskeyInfo;
 import com.whiskey.domain.whiskey.dto.WhiskeyCommand;
 import com.whiskey.domain.whiskey.dto.WhiskeySearchCondition;
 import com.whiskey.domain.review.dto.ReviewCursorResponse;
+import com.whiskey.review.dto.ReviewSearchRequest;
 import com.whiskey.whiskey.dto.ReviewResponse;
 import com.whiskey.whiskey.dto.WhiskeyRegisterRequest;
 import com.whiskey.whiskey.dto.WhiskeyResponse;
@@ -23,10 +23,8 @@ import com.whiskey.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +35,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -136,15 +133,10 @@ public class WhiskeyController {
     }
 
     @GetMapping("/whiskey/{id}/reviews")
-    @Operation(summary = "위스키 리뷰 조회", description = "위스키에 등록된 리뷰를 조회할 수 있습니다.")
-    public ApiResponse<ReviewCursorResponse<ReviewResponse>> reviews(
-        @PathVariable("id") @Positive Long id,
-        @RequestParam(name = "cursor", required = false) String cursor,
-        @RequestParam(name = "size", defaultValue = "7") @Max(50) int size,
-        @RequestParam(name = "filter", defaultValue = "ACTIVE") String filter) {
-
-        ReviewCursorRequest reviewRequest = ReviewCursorRequest.of(cursor, size, ReviewFilter.valueOf(filter));
-        ReviewCursorResponse<ReviewInfo> reviews = reviewService.getLatestReviews(id, reviewRequest);
+    @Operation(summary = "위스키 리뷰 조회", description = "위스키에 등록된 리뷰를 최신순, 평점 높은순, 평점 낮은순으로 조회할 수 있습니다.")
+    public ApiResponse<ReviewCursorResponse<ReviewResponse>> reviews(@PathVariable("id") @Positive Long id, @Valid ReviewSearchRequest request) {
+        ReviewCursorRequest reviewRequest = request.toReviewCursorRequest(id);
+        ReviewCursorResponse<ReviewInfo> reviews = reviewService.searchReviews(reviewRequest);
 
         ReviewCursorResponse<ReviewResponse> responses = ReviewCursorResponse.of(
             reviews.data().stream().map(ReviewResponse::from).collect(Collectors.toList()),

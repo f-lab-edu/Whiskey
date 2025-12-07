@@ -14,13 +14,10 @@ public record WhiskeySearchRequest(
     Integer volume,
     String description,
     Long cursor,
+    @Min(7) @Max(50)
     Integer size
 ) {
     public WhiskeySearchRequest {
-        if(size == null) {
-            size = 7;
-        }
-
         if(cursor != null && cursor < 0) {
             throw new IllegalArgumentException("cursor는 0보다 커야합니다.");
         }
