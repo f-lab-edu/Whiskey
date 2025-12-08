@@ -15,13 +15,13 @@ import com.whiskey.domain.review.repository.ReviewRepository;
 import com.whiskey.domain.whiskey.Whiskey;
 import com.whiskey.domain.whiskey.repository.WhiskeyRepository;
 import com.whiskey.exception.ErrorCode;
-import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -55,6 +55,7 @@ public class ReviewService {
         eventPublisher.publishEvent(new ReviewRegisteredEvent(whiskey.getId(), member.getId(), reviewDto.starRate()));
     }
 
+    @Transactional(readOnly = true)
     public ReviewCursorResponse<ReviewInfo> searchReviews(ReviewCursorRequest request) {
         List<Review> reviews = fetchReviewsBySortType(request);
         return buildReviewCursorResponse(reviews, request);
