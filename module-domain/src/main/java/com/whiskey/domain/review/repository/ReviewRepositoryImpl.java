@@ -106,7 +106,7 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
             return null;
         }
 
-        Integer cursorRating = request.getRatingCursorId();
+        Integer cursorRating = request.getCursorRating();
         Long cursorId = request.getCursorId();
 
         QReview review = QReview.review;
@@ -119,7 +119,7 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
             return null;
         }
 
-        Integer cursorRating = request.getRatingCursorId();
+        Integer cursorRating = request.getCursorRating();
         Long cursorId = request.getCursorId();
 
         QReview review = QReview.review;

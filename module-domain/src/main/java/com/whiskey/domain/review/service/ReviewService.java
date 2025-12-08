@@ -111,21 +111,21 @@ public class ReviewService {
         whiskeyRepository.findById(request.whiskeyId()).orElseThrow(() -> ErrorCode.NOT_FOUND.exception("위스키를 찾을 수 없습니다."));
 
         return switch(request.sortType()) {
-            case LATEST -> ReviewRepository.findLatestReviews(request);
-            case RATING_HIGH -> ReviewRepository.findByHighestRating(request);
-            case RATING_LOW -> ReviewRepository.findByLowestRating(request);
+            case LATEST -> reviewRepository.findLatestReviews(request);
+            case RATING_HIGH -> reviewRepository.findByHighestRating(request);
+            case RATING_LOW -> reviewRepository.findByLowestRating(request);
         };
     }
 
     private ReviewCursorResponse<ReviewInfo> buildReviewCursorResponse(List<Review> reviews, ReviewCursorRequest request) {
         boolean hasNext = reviews.size() > request.size();
         if(hasNext) {
-            reviews.remove(reviews.size() - 1);
+            reviews.removeLast();
         }
 
         String nextCursor = null;
         if(hasNext && !reviews.isEmpty()) {
-            Review lastReview = reviews.get(reviews.size() - 1);
+            Review lastReview = reviews.getLast();
             nextCursor = createNextCursor(lastReview, request.sortType());
         }
 
