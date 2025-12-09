@@ -1,13 +1,14 @@
 package com.whiskey.domain.review.repository;
 
 import com.whiskey.domain.review.Review;
-import com.whiskey.domain.review.enums.ReviewFilter;
+import com.whiskey.domain.review.dto.ReviewCursorRequest;
 import java.util.List;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 public interface ReviewRepositoryCustom {
-    Page<Review> reviews(long whiskeyId, Pageable pageable);
 
-    List<Review> findLatestReviews(long whiskeyId, Long cursorId, int size, ReviewFilter filter);
+    List<Review> findLatestReviews(ReviewCursorRequest request);
+
+    List<Review> findByHighestRating(ReviewCursorRequest request);
+
+    List<Review> findByLowestRating(ReviewCursorRequest request);
 }
