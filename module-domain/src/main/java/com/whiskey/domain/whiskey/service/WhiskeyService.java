@@ -114,4 +114,8 @@ public class WhiskeyService {
         List<WhiskeyInfo> whiskeyInfos = whiskeys.stream().map(WhiskeyInfo::from).toList();
         return WhiskeyCursorResponse.of(whiskeyInfos, nextCursor, hasNext);
     }
+
+    public Whiskey checkExistWhiskey(long whiskeyId) {
+        return whiskeyRepository.findById(whiskeyId).orElseThrow(() -> ErrorCode.NOT_FOUND.exception("위스키를 찾을 수 없습니다."));
+    }
 }

@@ -1,11 +1,11 @@
 package com.whiskey.domain.review.service;
 
+import com.whiskey.domain.member.service.MemberService;
 import com.whiskey.domain.review.enums.ReviewSortType;
 import com.whiskey.domain.review.event.ReviewDeletedEvent;
 import com.whiskey.domain.review.event.ReviewRegisteredEvent;
 import com.whiskey.domain.review.event.ReviewUpdatedEvent;
 import com.whiskey.domain.member.Member;
-import com.whiskey.domain.member.repository.MemberRepository;
 import com.whiskey.domain.review.Review;
 import com.whiskey.domain.review.dto.ReviewCommand;
 import com.whiskey.domain.review.dto.ReviewCursorRequest;
@@ -13,7 +13,7 @@ import com.whiskey.domain.review.dto.ReviewCursorResponse;
 import com.whiskey.domain.review.dto.ReviewInfo;
 import com.whiskey.domain.review.repository.ReviewRepository;
 import com.whiskey.domain.whiskey.Whiskey;
-import com.whiskey.domain.whiskey.repository.WhiskeyRepository;
+import com.whiskey.domain.whiskey.service.WhiskeyService;
 import com.whiskey.exception.ErrorCode;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,8 +29,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class ReviewService {
 
     private final ReviewRepository reviewRepository;
-    private final WhiskeyRepository whiskeyRepository;
-    private final MemberRepository memberRepository;
+    private final WhiskeyService whiskeyService;
+    private final MemberService memberService;
 
     private final ApplicationEventPublisher eventPublisher;
 
@@ -97,11 +97,11 @@ public class ReviewService {
     }
 
     private Member checkExistMember(long memberId) {
-        return memberRepository.findById(memberId).orElseThrow(() -> ErrorCode.NOT_FOUND.exception("존재하지 않는 회원입니다."));
+        return memberService.checkExistMember(memberId);
     }
 
     private Whiskey checkExistWhiskey(long whiskeyId) {
-        return whiskeyRepository.findById(whiskeyId).orElseThrow(() -> ErrorCode.NOT_FOUND.exception("존재하지 않는 위스키입니다."));
+        return whiskeyService.checkExistWhiskey(whiskeyId);
     }
 
     private Review checkExistReview(long reviewId) {
@@ -109,7 +109,7 @@ public class ReviewService {
     }
 
     private List<Review> fetchReviewsBySortType(ReviewCursorRequest request) {
-        whiskeyRepository.findById(request.whiskeyId()).orElseThrow(() -> ErrorCode.NOT_FOUND.exception("위스키를 찾을 수 없습니다."));
+        whiskeyService.checkExistWhiskey(request.whiskeyId());
 
         return switch(request.sortType()) {
             case LATEST -> reviewRepository.findLatestReviews(request);
