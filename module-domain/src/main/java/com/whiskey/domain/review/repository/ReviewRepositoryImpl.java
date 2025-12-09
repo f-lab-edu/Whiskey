@@ -35,14 +35,15 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
             .join(review.whiskey, whiskey).fetchJoin()
             .where(
                 review.whiskey.id.eq(request.whiskeyId()),
-                reviewCondition(request.filter())
-            );
+                reviewCondition(request.filter()),
+                cursorCondition(request)
+            )
+            .orderBy(
+                review.id.desc()
+            )
+            .limit(request.size() + 1);
 
-        if(request.cursor() != null) {
-            query.where(review.id.lt(request.getCursorId()));
-        }
-
-        return query.orderBy(review.id.desc()).limit(request.size() + 1).fetch();
+        return query.fetch();
     }
 
     @Override
@@ -99,6 +100,17 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
             case DELETED -> QReview.review.deletedAt.isNotNull();
             case ALL -> null;
         };
+    }
+
+    private BooleanExpression cursorCondition(ReviewCursorRequest request) {
+        if(request.cursor() == null) {
+            return null;
+        }
+
+        Long cursorId = request.getCursorId();
+
+        QReview review = QReview.review;
+        return review.id.lt(cursorId);
     }
 
     private BooleanExpression ratingHighCursorCondition(ReviewCursorRequest request) {
