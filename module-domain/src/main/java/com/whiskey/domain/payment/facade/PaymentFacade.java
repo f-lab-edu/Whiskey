@@ -1,10 +1,12 @@
 package com.whiskey.domain.payment.facade;
 
+import com.whiskey.domain.order.exception.OrderProcessingException;
 import com.whiskey.domain.order.service.OrderService;
 import com.whiskey.domain.payment.Payment;
 import com.whiskey.domain.payment.dto.PaymentCompensationRequest;
 import com.whiskey.domain.payment.dto.PaymentCompleteRequest;
 import com.whiskey.domain.payment.dto.PaymentConfirmCommand;
+import com.whiskey.domain.payment.exception.PaymentProcessingException;
 import com.whiskey.domain.payment.service.PaymentCompensationService;
 import com.whiskey.domain.payment.service.PaymentService;
 import com.whiskey.payment.client.PaymentClient;
@@ -36,10 +38,10 @@ public class PaymentFacade {
         PaymentCompleteRequest request = PaymentCompleteRequest.from(payment, paymentResponse);
 
         // 4. 결제 완료 처리
-        completePayment(request);
+        completePaymentProcess(request);
 
         // 5. 주문 확정
-        confirmOrder(request);
+        confirmOrderProcess(request);
     }
 
     private PaymentResponse requestPaymentConfirm(PaymentConfirmCommand command) {
@@ -58,23 +60,23 @@ public class PaymentFacade {
         }
     }
 
-    private void completePayment(PaymentCompleteRequest request) {
+    private void completePaymentProcess(PaymentCompleteRequest request) {
         try {
             paymentService.completePayment(request);
         }
         catch (Exception e) {
             compensatePayment(request, "결제 완료 처리 실패");
-            throw new RuntimeException("결제 처리 중 오류가 발생했습니다.", e);
+            throw new PaymentProcessingException("결제 처리 중 오류가 발생했습니다.", e);
         }
     }
 
-    private void confirmOrder(PaymentCompleteRequest request) {
+    private void confirmOrderProcess(PaymentCompleteRequest request) {
         try {
             orderService.confirmReservation(request.orderId());
         }
         catch (Exception e) {
             compensatePayment(request, "주문 확정 처리 실패");
-            throw new RuntimeException("주문 처리 중 오류가 발생했습니다.", e);
+            throw new OrderProcessingException("주문 처리 중 오류가 발생했습니다.", e);
         }
     }
 
