@@ -26,7 +26,7 @@ public class ReviewController {
 
     private final ReviewService reviewService;
 
-    @PostMapping("/review")
+    @PostMapping("/reviews")
     @Operation(summary = "위스키 리뷰 등록", description = "위스키 리뷰를 등록합니다.")
     public ApiResponse<Void> register(@Valid @RequestBody ReviewRegisterRequest reviewDto, @CurrentMemberId Long memberId) {
         ReviewCommand command = new ReviewCommand(
@@ -40,7 +40,7 @@ public class ReviewController {
         return ApiResponse.success("리뷰 등록이 완료되었습니다.");
     }
 
-    @PutMapping("/review/{id}")
+    @PutMapping("/reviews/{id}")
     @Operation(summary = "위스키 리뷰 수정", description = "위스키 리뷰를 수정합니다.")
     public ApiResponse<Void> update(@Parameter(description = "리뷰 ID") @PathVariable("id") Long id, @Valid @RequestBody ReviewRegisterRequest reviewDto, @CurrentMemberId Long memberId) {
         ReviewCommand command = new ReviewCommand(
@@ -54,7 +54,7 @@ public class ReviewController {
         return ApiResponse.success("리뷰 수정이 완료되었습니다.");
     }
 
-    @DeleteMapping("/review/{id}")
+    @DeleteMapping("/reviews/{id}")
     @Operation(summary = "위스키 리뷰 삭제", description = "위스키 리뷰를 삭제합니다.")
     public ApiResponse<Void> delete(@Parameter(description = "리뷰 ID") @PathVariable("id") Long id, @CurrentMemberId Long memberId) {
         reviewService.delete(id, memberId);

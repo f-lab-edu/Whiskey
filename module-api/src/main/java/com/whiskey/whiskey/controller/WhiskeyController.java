@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -46,7 +47,7 @@ public class WhiskeyController {
     private final WhiskeyService whiskeyService;
     private final ReviewService reviewService;
 
-//    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/whiskey")
     @Operation(summary = "위스키 등록", description = "위스키를 등록합니다.")
     public ApiResponse<Void> register(@Valid @RequestBody WhiskeyRegisterRequest whiskeyDto) {
@@ -68,6 +69,7 @@ public class WhiskeyController {
         return ApiResponse.success("위스키 등록이 완료되었습니다.");
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/whiskey/{id}")
     @Operation(summary = "위스키 수정", description = "위스키 ID로 위스키 정보를 수정합니다.")
     public ApiResponse<Void> update(@Parameter(description = "위스키 ID") @PathVariable("id") Long id, @Valid @RequestBody WhiskeyRegisterRequest whiskeyDto) {
@@ -89,6 +91,7 @@ public class WhiskeyController {
         return ApiResponse.success("위스키 정보가 수정되었습니다.");
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/whiskey/{id}")
     @Operation(summary = "위스키 삭제", description = "위스키 ID로 위스키를 삭제합니다. 논리적 삭제가 아닌 물리적으로 삭제합니다.")
     public ApiResponse<Void> delete(@Parameter(description = "위스키 ID") @PathVariable("id") @NotNull Long id) {
