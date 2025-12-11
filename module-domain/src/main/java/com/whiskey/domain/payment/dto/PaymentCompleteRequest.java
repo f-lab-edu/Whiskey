@@ -1,28 +1,29 @@
 package com.whiskey.domain.payment.dto;
 
-import com.whiskey.domain.order.Order;
 import com.whiskey.domain.payment.Payment;
 import com.whiskey.payment.dto.PaymentResponse;
 
 public record PaymentCompleteRequest(
     String paymentOrderId,
     String paymentKey,
-    Long orderId
+    Long orderId,
+    Long paymentId
 ) {
-    public static PaymentCompleteRequest from(Payment payment, Order order, PaymentResponse paymentResponse) {
+    public static PaymentCompleteRequest from(Payment payment, PaymentResponse paymentResponse) {
         return new PaymentCompleteRequest(
             payment.getPaymentOrderId(),
             paymentResponse.paymentKey(),
-            order.getId()
+            payment.getOrder().getId(),
+            payment.getId()
         );
     }
 
-    public PaymentCompensationRequest toCompensationRequest(Long paymentId, Long orderId) {
+    public PaymentCompensationRequest toCompensationRequest() {
         return new PaymentCompensationRequest(
-            paymentId,
-            orderId,
-            paymentOrderId,
-            paymentKey
+            this.paymentId,
+            this.orderId,
+            this.paymentOrderId,
+            this.paymentKey
         );
     }
 }

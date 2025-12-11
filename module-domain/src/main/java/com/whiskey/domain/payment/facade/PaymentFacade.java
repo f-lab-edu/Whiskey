@@ -1,6 +1,5 @@
 package com.whiskey.domain.payment.facade;
 
-import com.whiskey.domain.order.Order;
 import com.whiskey.domain.order.service.OrderService;
 import com.whiskey.domain.payment.Payment;
 import com.whiskey.domain.payment.dto.PaymentCompensationRequest;
@@ -27,34 +26,20 @@ public class PaymentFacade {
 
     // 결제 승인 요청
     public void confirmPayment(PaymentConfirmCommand command) {
-        // 1. 결제와 주문 유효성 검사
+        // 1. 결제와 유효성 검사
         Payment payment = paymentService.validatePayment(command);
-        Order order = orderService.getOrder(payment.getOrder().getId());
 
         // 2. PG 결제 승인 요청(트랜잭션 밖에서)
         PaymentResponse paymentResponse = requestPaymentConfirm(command);
 
         // 3. PG 결제 성공하면 DB 업데이트(트랜잭션 시작)
-        PaymentCompleteRequest request = PaymentCompleteRequest.from(payment, order, paymentResponse);
+        PaymentCompleteRequest request = PaymentCompleteRequest.from(payment, paymentResponse);
 
-        try {
-            paymentService.completePayment(request);
-            orderService.confirmReservation(request.orderId());
-        }
-        catch (Exception e) {
-            log.error("결제 완료 처리 실패 - orderId: {}", order.getId(), e);
+        // 4. 결제 완료 처리
+        completePayment(request);
 
-            PaymentCompensationRequest compensationRequest = request.toCompensationRequest(payment.getId(), order.getId());
-
-            try {
-                paymentCompensationService.cancelPayment(compensationRequest);
-            }
-            catch (Exception e2) {
-                log.error("보상 트랜잭션 실패");
-            }
-
-            throw new RuntimeException("결제는 승인되었으나 주문 처리에 실패했습니다. 고객센터에 문의해주세요.", e);
-        }
+        // 5. 주문 확정
+        confirmOrder(request);
     }
 
     private PaymentResponse requestPaymentConfirm(PaymentConfirmCommand command) {
@@ -71,5 +56,45 @@ public class PaymentFacade {
             log.error("PG 결제 승인 실패 - orderId: {}", command.orderId(), e);
             throw new RuntimeException("결제 승인에 실패했습니다: " + e.getMessage(), e);
         }
+    }
+
+    private void completePayment(PaymentCompleteRequest request) {
+        try {
+            paymentService.completePayment(request);
+        }
+        catch (Exception e) {
+            compensatePayment(request, "결제 완료 처리 실패");
+            throw new RuntimeException("결제 처리 중 오류가 발생했습니다.", e);
+        }
+    }
+
+    private void confirmOrder(PaymentCompleteRequest request) {
+        try {
+            orderService.confirmReservation(request.orderId());
+        }
+        catch (Exception e) {
+            compensatePayment(request, "주문 확정 처리 실패");
+            throw new RuntimeException("주문 처리 중 오류가 발생했습니다.", e);
+        }
+    }
+
+    private void compensatePayment(PaymentCompleteRequest request, String reason) {
+        log.warn("보상 트랜잭션 시작 - reason : {}, paymentOrderId: {}", reason, request.paymentOrderId());
+
+        PaymentCompensationRequest compensationRequest = request.toCompensationRequest();
+
+        try {
+            paymentCompensationService.cancelPayment(compensationRequest);
+        }
+        catch (Exception e) {
+            log.error("보상 트랜잭션 실패", e);
+            compensationFailureProcess(request, reason, e);
+        }
+    }
+
+    private void compensationFailureProcess(PaymentCompleteRequest request, String reason, Exception e) {
+        log.error("보상 트랜잭션 실패 후처리 - DLQ에 저장");
+        
+        // Redis sorted set으로 처리
     }
 }
