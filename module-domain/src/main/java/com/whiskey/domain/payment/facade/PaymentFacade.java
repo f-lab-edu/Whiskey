@@ -1,8 +1,10 @@
 package com.whiskey.domain.payment.facade;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.whiskey.domain.order.exception.OrderProcessingException;
 import com.whiskey.domain.order.service.OrderService;
 import com.whiskey.domain.payment.Payment;
+import com.whiskey.domain.payment.dto.CompensatePaymentInfo;
 import com.whiskey.domain.payment.dto.PaymentCompensationRequest;
 import com.whiskey.domain.payment.dto.PaymentCompleteRequest;
 import com.whiskey.domain.payment.dto.PaymentConfirmCommand;
@@ -12,8 +14,10 @@ import com.whiskey.domain.payment.service.PaymentService;
 import com.whiskey.payment.client.PaymentClient;
 import com.whiskey.payment.dto.PaymentConfirmRequest;
 import com.whiskey.payment.dto.PaymentResponse;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -26,8 +30,11 @@ public class PaymentFacade {
     private final OrderService orderService;
     private final PaymentCompensationService paymentCompensationService;
 
+    @Value("5")
+    private int retryTime;
+
     // 결제 승인 요청
-    public void confirmPayment(PaymentConfirmCommand command) {
+    public void confirmPayment(PaymentConfirmCommand command) throws JsonProcessingException {
         // 1. 결제와 유효성 검사
         Payment payment = paymentService.validatePayment(command);
 
@@ -60,7 +67,8 @@ public class PaymentFacade {
         }
     }
 
-    private void completePaymentProcess(PaymentCompleteRequest request) {
+    private void completePaymentProcess(PaymentCompleteRequest request)
+        throws JsonProcessingException {
         try {
             paymentService.completePayment(request);
         }
@@ -70,7 +78,8 @@ public class PaymentFacade {
         }
     }
 
-    private void confirmOrderProcess(PaymentCompleteRequest request) {
+    private void confirmOrderProcess(PaymentCompleteRequest request)
+        throws JsonProcessingException {
         try {
             orderService.confirmReservation(request.orderId());
         }
@@ -80,7 +89,8 @@ public class PaymentFacade {
         }
     }
 
-    private void compensatePayment(PaymentCompleteRequest request, String reason) {
+    private void compensatePayment(PaymentCompleteRequest request, String reason)
+        throws JsonProcessingException {
         log.warn("보상 트랜잭션 시작 - reason : {}, paymentOrderId: {}", reason, request.paymentOrderId());
 
         PaymentCompensationRequest compensationRequest = request.toCompensationRequest();
@@ -94,9 +104,23 @@ public class PaymentFacade {
         }
     }
 
-    private void compensationFailureProcess(PaymentCompleteRequest request, String reason, Exception e) {
+    private void compensationFailureProcess(PaymentCompleteRequest request, String reason, Exception error)
+        throws JsonProcessingException {
         log.error("보상 트랜잭션 실패 후처리 - DLQ에 저장");
         
         // Redis sorted set으로 처리
+        CompensatePaymentInfo compensatePaymentInfo = new CompensatePaymentInfo(
+            request.paymentId(),
+            request.orderId(),
+            request.paymentOrderId(),
+            request.paymentKey(),
+            reason,
+            error.getMessage(),
+            LocalDateTime.now(),
+            0
+        );
+
+        LocalDateTime retryAt = LocalDateTime.now().plusMinutes(retryTime);
+        paymentCompensationService.compensateFailurePayment(compensatePaymentInfo, retryAt);
     }
 }

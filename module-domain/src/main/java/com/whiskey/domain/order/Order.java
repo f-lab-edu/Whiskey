@@ -39,9 +39,6 @@ public class Order extends BaseEntity {
     @Column(nullable = false)
     private OrderStatus orderStatus;
 
-    // Payments 엔티티와 중복, 삭제처리 필요
-    private String paymentId;
-
     @Column(nullable = false)
     private LocalDateTime expireAt;
 
