@@ -30,7 +30,7 @@ public class PaymentFacade {
     private final OrderService orderService;
     private final PaymentCompensationService paymentCompensationService;
 
-    @Value("5")
+    @Value("${payment.compensation.retry-time:5}")
     private int retryTime;
 
     // 결제 승인 요청
