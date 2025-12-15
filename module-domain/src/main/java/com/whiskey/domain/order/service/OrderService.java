@@ -91,7 +91,12 @@ public class OrderService {
 
     @Transactional
     public void cancelOrder(Long orderId, Long memberId) {
-        Order order = orderRepository.findById(orderId).orElseThrow(() -> ErrorCode.NOT_FOUND.exception("존재하지 않는 주문입니다."));
+        Order order = getOrder(orderId);
+
+        if(!order.getMemberId().equals(memberId)) {
+            throw new IllegalArgumentException("본인의 주문만 취소가 가능합니다.");
+        }
+
         order.cancelReservation();
 
         orderExpiryService.removeExpire(orderId);
@@ -99,7 +104,7 @@ public class OrderService {
 
     @Transactional
     public void expireOrder(long orderId) {
-        Order order = orderRepository.findById(orderId).orElseThrow(() -> ErrorCode.NOT_FOUND.exception("존재하지 않는 주문입니다."));
+        Order order = getOrder(orderId);
 
         // PENDING 주문만 만료 처리
         if(order.getOrderStatus() != OrderStatus.PENDING) {
@@ -113,5 +118,15 @@ public class OrderService {
         if(!payments.isEmpty()) {
             payments.forEach(Payment::expirePayment);
         }
+    }
+
+    @Transactional
+    public void confirmReservation(long orderId) {
+        Order order = getOrder(orderId);
+        order.confirmReservation();
+    }
+
+    public Order getOrder(Long orderId) {
+        return orderRepository.findById(orderId).orElseThrow(() -> ErrorCode.NOT_FOUND.exception("존재하지 않는 주문입니다."));
     }
 }

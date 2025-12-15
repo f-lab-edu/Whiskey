@@ -30,6 +30,9 @@ dev:
 order:
   reservation:
     expire-time: 10
+payment:
+  compensation:
+    retry-time: 5
 toss:
   payment:
     secret-key: test_sk_pP2YxJ4K87apm2lqMegpVRGZwXLO

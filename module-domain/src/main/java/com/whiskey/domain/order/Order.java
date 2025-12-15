@@ -39,8 +39,6 @@ public class Order extends BaseEntity {
     @Column(nullable = false)
     private OrderStatus orderStatus;
 
-    private String paymentId;
-
     @Column(nullable = false)
     private LocalDateTime expireAt;
 
@@ -63,10 +61,9 @@ public class Order extends BaseEntity {
         this.reservations.add(reservation);
     }
 
-    public void confirmReservation(String paymentId) {
+    public void confirmReservation() {
         checkConfirm();
         this.orderStatus = OrderStatus.CONFIRMED;
-        this.paymentId = paymentId;
         this.confirmedAt = LocalDateTime.now();
 
         reservations.forEach(StockReservation::confirm);
@@ -85,6 +82,20 @@ public class Order extends BaseEntity {
         this.cancelledAt = LocalDateTime.now();
 
         reservations.forEach(StockReservation::cancelByExpiration);
+    }
+
+    public void validatePayment(Long memberId, BigDecimal totalPrice) {
+        if(!this.memberId.equals(memberId)) {
+            throw new IllegalArgumentException("내 주문만 결제할 수 있습니다.");
+        }
+
+        if(this.orderStatus != OrderStatus.PENDING) {
+            throw new IllegalArgumentException("결제 대기 중인 주문이 아닙니다.");
+        }
+
+        if(this.totalPrice.compareTo(totalPrice) != 0) {
+            throw new IllegalArgumentException("결제 금액이 일치하지 않습니다.");
+        }
     }
 
     private void checkConfirm() {
