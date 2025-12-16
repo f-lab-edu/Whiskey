@@ -8,6 +8,8 @@ import com.whiskey.domain.auth.repository.RefreshTokenRepository;
 import com.whiskey.domain.member.Member;
 import com.whiskey.domain.member.enums.MemberStatus;
 import com.whiskey.domain.member.repository.MemberRepository;
+import com.whiskey.exception.AuthErrorCode;
+import com.whiskey.exception.BusinessException;
 import com.whiskey.exception.ErrorCode;
 import com.whiskey.security.jwt.JwtTokenProvider;
 import jakarta.transaction.Transactional;
@@ -60,15 +62,22 @@ public class AuthService {
     }
 
     private Member authenticateMember(String email, String password) {
-        Member member = memberRepository.findByEmailAndStatus(email, MemberStatus.ACTIVE)
-            .orElseThrow(() -> ErrorCode.UNAUTHORIZED.exception("존재하지 않는 회원입니다."));
+        // 1. 회원 존재 여부 확인
+        Member member = memberRepository.findByEmail(email).orElseThrow(() -> new BusinessException(AuthErrorCode.MEMBER_NOT_FOUND));
 
-        if(!passwordEncoder.matches(password, member.getPasswordHash())) {
-            throw ErrorCode.UNAUTHORIZED.exception("비밀번호가 일치하지 않습니다.");
+        // 2. 탈퇴 계정 확인
+        if(member.isExpired()) {
+            throw new BusinessException(AuthErrorCode.ACCOUNT_WITHDRAW);
         }
 
-        if(member.getStatus() != MemberStatus.ACTIVE) {
-            throw ErrorCode.UNAUTHORIZED.exception("비활성화된 계정입니다.");
+        // 3. 계정 상태 확인
+        if(member.isLocked()) {
+            throw new BusinessException(AuthErrorCode.ACCOUNT_INACTIVE);
+        }
+
+        // 4. 비밀번호 확인
+        if(!passwordEncoder.matches(password, member.getPasswordHash())) {
+            throw new BusinessException(AuthErrorCode.INVALID_CREDENTIALS);
         }
 
         return member;
@@ -109,7 +118,7 @@ public class AuthService {
 
         boolean isValid = isValidRefreshToken(memberId, refreshToken);
         if(!isValid) {
-            throw ErrorCode.UNAUTHORIZED.exception("Refresh token이 유효하지 않습니다.");
+            throw new BusinessException(AuthErrorCode.REFRESH_TOKEN_INVALID);
         }
 
         List<SimpleGrantedAuthority> authorities = List.of(

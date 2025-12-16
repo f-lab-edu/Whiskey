@@ -48,4 +48,14 @@ public class Member extends BaseEntity {
         this.email = email;
         this.status = status;
     }
+
+    // 휴면계정 체크
+    public boolean isLocked() {
+        return MemberStatus.INACTIVE.equals(status);
+    }
+
+    // 탈퇴계정 체크
+    public boolean isExpired() {
+        return MemberStatus.WITHDRAW.equals(status);
+    }
 }
