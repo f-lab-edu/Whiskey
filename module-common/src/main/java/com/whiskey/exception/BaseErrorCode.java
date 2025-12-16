@@ -2,7 +2,7 @@ package com.whiskey.exception;
 
 import org.springframework.http.HttpStatus;
 
-public interface GlobalErrorCode {
+public interface BaseErrorCode {
     HttpStatus getHttpStatus();
     String getMessage();
     String name();
