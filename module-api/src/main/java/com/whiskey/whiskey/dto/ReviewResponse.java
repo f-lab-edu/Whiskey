@@ -1,6 +1,5 @@
 package com.whiskey.whiskey.dto;
 
-import com.whiskey.domain.review.Review;
 import com.whiskey.domain.review.dto.ReviewInfo;
 import java.time.LocalDateTime;
 

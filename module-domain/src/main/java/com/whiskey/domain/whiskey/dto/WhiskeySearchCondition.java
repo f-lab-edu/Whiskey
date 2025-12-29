@@ -10,5 +10,7 @@ public record WhiskeySearchCondition(
     MaltType maltType,
     Double abv,
     Integer volume,
-    String description
+    String description,
+    Long cursor,
+    Integer size
 ) {}
