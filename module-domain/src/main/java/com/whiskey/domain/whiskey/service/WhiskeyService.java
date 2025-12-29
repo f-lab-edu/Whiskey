@@ -1,5 +1,6 @@
 package com.whiskey.domain.whiskey.service;
 
+import com.whiskey.domain.whiskey.dto.WhiskeyCursorResponse;
 import com.whiskey.domain.whiskey.dto.WhiskeyInfo;
 import com.whiskey.domain.whiskey.dto.WhiskeyCommand;
 import com.whiskey.domain.whiskey.dto.WhiskeySearchCondition;
@@ -10,6 +11,7 @@ import com.whiskey.exception.ErrorCode;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -95,10 +97,25 @@ public class WhiskeyService {
         return WhiskeyInfo.from(whiskey);
     }
 
-    public List<WhiskeyInfo> searchWhiskeys(WhiskeySearchCondition whiskeyDto) {
+    public WhiskeyCursorResponse<WhiskeyInfo> searchWhiskeys(WhiskeySearchCondition whiskeyDto) {
         List<Whiskey> whiskeys = whiskeyRepository.searchWhiskeys(whiskeyDto);
-        return whiskeys.stream()
-            .map(WhiskeyInfo::from)
-            .toList();
+
+        boolean hasNext = whiskeys.size() > whiskeyDto.size();
+        if(hasNext) {
+            whiskeys.remove(whiskeys.size() - 1);
+        }
+
+        String nextCursor = null;
+        if(hasNext && !whiskeys.isEmpty()) {
+            Whiskey lastWhiskey = whiskeys.get(whiskeys.size() - 1);
+            nextCursor = String.valueOf(lastWhiskey.getId());
+        }
+
+        List<WhiskeyInfo> whiskeyInfos = whiskeys.stream().map(WhiskeyInfo::from).toList();
+        return WhiskeyCursorResponse.of(whiskeyInfos, nextCursor, hasNext);
+    }
+
+    public Whiskey checkExistWhiskey(long whiskeyId) {
+        return whiskeyRepository.findById(whiskeyId).orElseThrow(() -> ErrorCode.NOT_FOUND.exception("위스키를 찾을 수 없습니다."));
     }
 }

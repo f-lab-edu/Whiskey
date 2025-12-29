@@ -60,4 +60,8 @@ public class MemberService {
             member.getEmail()
         );
     }
+
+    public Member checkExistMember(long memberId) {
+        return memberRepository.findById(memberId).orElseThrow(() -> ErrorCode.NOT_FOUND.exception("존재하지 않는 회원입니다."));
+    }
 }

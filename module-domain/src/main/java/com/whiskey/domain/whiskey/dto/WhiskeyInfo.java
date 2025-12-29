@@ -11,7 +11,7 @@ public record WhiskeyInfo(
     String distillery,
     String name,
     String country,
-    int age,
+    Integer age,
     MaltType  maltType,
     double abv,
     String description,
