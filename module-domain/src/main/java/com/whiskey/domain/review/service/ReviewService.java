@@ -97,7 +97,7 @@ public class ReviewService {
     }
 
     private Member checkExistMember(long memberId) {
-        return memberService.checkExistMember(memberId);
+        return memberService.getMember(memberId);
     }
 
     private Whiskey checkExistWhiskey(long whiskeyId) {

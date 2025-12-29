@@ -61,7 +61,7 @@ public class MemberService {
         );
     }
 
-    public Member checkExistMember(long memberId) {
+    public Member getMember(Long memberId) {
         return memberRepository.findById(memberId).orElseThrow(() -> ErrorCode.NOT_FOUND.exception("존재하지 않는 회원입니다."));
     }
 }
