@@ -1,6 +1,7 @@
 package com.whiskey.whiskey.dto;
 
 import com.whiskey.domain.whiskey.enums.MaltType;
+import com.whiskey.domain.whiskey.enums.WhiskeySortType;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 
@@ -15,9 +16,14 @@ public record WhiskeySearchRequest(
     String description,
     Long cursor,
     @Min(7) @Max(50)
-    Integer size
+    Integer size,
+    WhiskeySortType sortType
 ) {
     public WhiskeySearchRequest {
+        if(size == null || size < 0) {
+            size = 7;
+        }
+
         if(cursor != null && cursor < 0) {
             throw new IllegalArgumentException("cursor는 0보다 커야합니다.");
         }
