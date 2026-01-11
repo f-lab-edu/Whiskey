@@ -14,6 +14,7 @@ import com.whiskey.domain.payment.repository.PaymentRepository;
 import com.whiskey.exception.ErrorCode;
 import com.whiskey.payment.client.PaymentClient;
 import com.whiskey.payment.dto.PaymentResponse;
+import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -49,7 +50,7 @@ public class PaymentService {
             throw new IllegalArgumentException("결제 대기 중인 주문이 아닙니다.");
         }
 
-        if(order.getTotalPrice().compareTo(command.amount()) != 0) {
+        if(order.getTotalPrice().compareTo(BigDecimal.valueOf(command.amount())) != 0) {
             throw new IllegalArgumentException("결제 금액이 일치하지 않습니다.");
         }
 
