@@ -1,5 +1,6 @@
 package com.whiskey.payment.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.whiskey.annotation.CurrentMemberId;
 import com.whiskey.domain.payment.dto.PaymentConfirmCommand;
 import com.whiskey.domain.payment.dto.PaymentPrepareCommand;
@@ -50,7 +51,8 @@ public class PaymentController {
 
     @PostMapping("/confirm")
     @Operation(summary = "결제 승인", description = "토스페이먼트 API에 결제 승인을 요청합니다.")
-    public ApiResponse<PaymentConfirmResponse> confirm(@Valid @RequestBody PaymentConfirmRequest request, @CurrentMemberId Long memberId) {
+    public ApiResponse<PaymentConfirmResponse> confirm(@Valid @RequestBody PaymentConfirmRequest request, @CurrentMemberId Long memberId)
+        throws JsonProcessingException {
         PaymentConfirmCommand command = new PaymentConfirmCommand(
             memberId,
             request.orderId(),

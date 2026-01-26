@@ -1,11 +1,11 @@
 package com.whiskey.domain.payment.service;
 
 import com.whiskey.domain.member.Member;
-import com.whiskey.domain.member.repository.MemberRepository;
+import com.whiskey.domain.member.service.MemberService;
 import com.whiskey.domain.order.Order;
-import com.whiskey.domain.order.enums.OrderStatus;
-import com.whiskey.domain.order.repository.OrderRepository;
+import com.whiskey.domain.order.service.OrderService;
 import com.whiskey.domain.payment.Payment;
+import com.whiskey.domain.payment.dto.PaymentCompleteRequest;
 import com.whiskey.domain.payment.dto.PaymentConfirmCommand;
 import com.whiskey.domain.payment.dto.PaymentPrepareCommand;
 import com.whiskey.domain.payment.dto.PaymentPrepareResult;
@@ -26,19 +26,18 @@ import org.springframework.transaction.annotation.Transactional;
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
-    private final MemberRepository memberRepository;
-    private final OrderRepository orderRepository;
 
-    private final PaymentClient paymentClient;
-    private final PaymentCompensationService paymentCompensationService;
+    private final OrderService orderService;
+    private final MemberService memberService;
 
     @Transactional
     public PaymentPrepareResult createPayment(PaymentPrepareCommand command) {
         // 1. 회원 확인
-        Member member = checkExistMember(command.memberId());
+        Member member = memberService.getMember(command.memberId());
 
-        // 2. 주문 조회
-        Order order = orderRepository.findById(command.orderId()).orElseThrow(() -> ErrorCode.NOT_FOUND.exception("주문을 찾을 수 없습니다."));
+        // 2. 주문 조회 및 체크
+        Order order = orderService.getOrder(command.orderId());
+        order.validatePayment(member.getId(), command.amount());
 
         // 3. 내 주문이 맞는지 확인
         if(!order.getMemberId().equals(member.getId())) {
@@ -70,29 +69,17 @@ public class PaymentService {
     }
 
     @Transactional
-    public void completePayment(Payment payment, Order order, PaymentResponse response) {
-        try {
-            payment.completePayment(response.paymentKey());
-            order.confirmReservation(payment.getPaymentOrderId());
-        }
-        catch (Exception e) {
-            log.error("결제 완료 처리 실패 - orderId: {}", order.getId(), e);
+    public void completePayment(PaymentCompleteRequest request) {
+        Payment payment = paymentRepository.findByPaymentOrderId(request.paymentOrderId()).orElseThrow(() -> new IllegalStateException("결제 정보를 찾을 수 없습니다"));
 
-            // 주문취소 로직 추가
-            try {
-                paymentCompensationService.cancelPayment(payment, order, response);
-            }
-            catch (Exception e2) {
-                log.error("보상 트랜잭션 실패");
-            }
-
-            throw new RuntimeException("결제는 승인되었으나 주문 처리에 실패했습니다. 고객센터에 문의해주세요.", e);
-        }
+        // 비즈니스 로직에만 집중
+        // 예외 발생시 트랜잭션 롤백, PaymentFacade로 던져짐
+        payment.completePayment(payment.getPaymentKey());
     }
 
     @Transactional
     public Payment validatePayment(PaymentConfirmCommand command) {
-        Payment payment = paymentRepository.findByPaymentOrderId(command.orderId());
+        Payment payment = paymentRepository.findByPaymentOrderId(command.orderId()).orElseThrow(() -> new IllegalStateException("결제 정보를 찾을 수 없습니다"));
 
         if(!payment.getMember().getId().equals(command.memberId())) {
             throw new IllegalArgumentException("memberId가 다릅니다.");
@@ -107,9 +94,5 @@ public class PaymentService {
         }
 
         return payment;
-    }
-
-    private Member checkExistMember(long memberId) {
-        return memberRepository.findById(memberId).orElseThrow(() -> ErrorCode.NOT_FOUND.exception("존재하지 않는 회원입니다."));
     }
 }

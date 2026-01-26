@@ -1,5 +1,8 @@
 package com.whiskey.domain.payment.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum PaymentStatus {
     PENDING("결제 대기"),
     COMPLETED("결제 완료"),
@@ -13,7 +16,4 @@ public enum PaymentStatus {
         this.value = value;
     }
 
-    public String getValue() {
-        return value;
-    }
 }
