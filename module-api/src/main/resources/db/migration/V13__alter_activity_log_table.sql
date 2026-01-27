@@ -1,1 +1,1 @@
-ALTER TABLE whiskey.activity_logs MODIFY COLUMN target_id bigint NULL;
+ALTER TABLE activity_logs MODIFY COLUMN target_id bigint NULL;

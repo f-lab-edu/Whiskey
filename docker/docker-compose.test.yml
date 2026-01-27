@@ -1,0 +1,27 @@
+services:
+  mysql-test:
+    image: mysql:8.0
+    container_name: mysql-test
+    ports:
+      - "127.0.0.1:3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root1234
+      MYSQL_DATABASE: whiskey_test
+      MYSQL_ROOT_HOST: '%'
+    networks:
+      - whiskey-test-network
+
+  redis-test:
+    image: redis:7-alpine
+    container_name: redis-test
+    ports:
+      - "127.0.0.1:6380:6379"
+    command: redis-server --appendonly yes --requirepass ""
+    restart: unless-stopped
+    networks:
+      - whiskey-test-network
+
+networks:
+  whiskey-test-network:
+    name: whiskey-test-network
+    driver: bridge

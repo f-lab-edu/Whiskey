@@ -40,7 +40,7 @@ public class PaymentController {
         PaymentPrepareCommand command = new PaymentPrepareCommand(
             memberId,
             request.orderId(),
-            BigDecimal.valueOf(request.amount()),
+            request.amount(),
             request.description()
         );
 
@@ -56,7 +56,7 @@ public class PaymentController {
         PaymentConfirmCommand command = new PaymentConfirmCommand(
             memberId,
             request.orderId(),
-            BigDecimal.valueOf(request.amount()),
+            request.amount(),
             request.paymentKey()
         );
 

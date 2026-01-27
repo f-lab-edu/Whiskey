@@ -3,6 +3,7 @@ package com.whiskey.domain.payment.service;
 import com.whiskey.domain.member.Member;
 import com.whiskey.domain.member.service.MemberService;
 import com.whiskey.domain.order.Order;
+import com.whiskey.domain.order.enums.OrderStatus;
 import com.whiskey.domain.order.service.OrderService;
 import com.whiskey.domain.payment.Payment;
 import com.whiskey.domain.payment.dto.PaymentCompleteRequest;
@@ -11,6 +12,10 @@ import com.whiskey.domain.payment.dto.PaymentPrepareCommand;
 import com.whiskey.domain.payment.dto.PaymentPrepareResult;
 import com.whiskey.domain.payment.enums.PaymentStatus;
 import com.whiskey.domain.payment.repository.PaymentRepository;
+import com.whiskey.exception.ErrorCode;
+import com.whiskey.payment.client.PaymentClient;
+import com.whiskey.payment.dto.PaymentResponse;
+import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,10 +38,23 @@ public class PaymentService {
 
         // 2. 주문 조회 및 체크
         Order order = orderService.getOrder(command.orderId());
-        order.validatePayment(member.getId(), command.amount());
+        order.validatePayment(member.getId(), order.getTotalPrice());
 
-        // 3. 중복 결제 체크
-        if(paymentRepository.existsByOrder(order)) {
+        // 3. 내 주문이 맞는지 확인
+        if(!order.getMemberId().equals(member.getId())) {
+            throw new IllegalArgumentException("내 주문만 결제할 수 있습니다.");
+        }
+
+        // 4. 주문 상태 확인
+        if(order.getOrderStatus() != OrderStatus.PENDING) {
+            throw new IllegalArgumentException("결제 대기 중인 주문이 아닙니다.");
+        }
+
+        if(order.getTotalPrice().compareTo(BigDecimal.valueOf(command.amount())) != 0) {
+            throw new IllegalArgumentException("결제 금액이 일치하지 않습니다.");
+        }
+
+        if(paymentRepository.existsByOrder(order) || order.getOrderStatus() == OrderStatus.CONFIRMED) {
             throw new IllegalArgumentException("이미 결제된 주문입니다.");
         }
 

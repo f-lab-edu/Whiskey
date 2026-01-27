@@ -1,4 +1,20 @@
-dev:
-  enabled: true
-  header-name: bypass-jwt-auth
-  token: whisKey-dev
+spring:
+  config:
+    activate:
+      on-profile: test
+  datasource:
+    url: jdbc:mysql://localhost:3307/whiskey_test?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: root1234
+  data:
+    redis:
+      host: localhost
+      port: 6380
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+  flyway:
+    enabled: true
+    clean-disabled: false

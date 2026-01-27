@@ -9,6 +9,6 @@ public record PaymentPrepareResponse(
     Long amount
 ) {
     public static PaymentPrepareResponse from(PaymentPrepareResult result) {
-        return new PaymentPrepareResponse(result.orderId(), result.amount().longValueExact());
+        return new PaymentPrepareResponse(result.orderId(), result.amount());
     }
 }

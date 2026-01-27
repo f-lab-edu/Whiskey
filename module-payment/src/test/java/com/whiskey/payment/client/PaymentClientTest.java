@@ -101,11 +101,7 @@ class PaymentClientTest {
     }
 
     private PaymentConfirmRequest createRequest() {
-        return PaymentConfirmRequest.builder()
-            .paymentKey("test_payment_key")
-            .orderId("ORDER_123")
-            .amount(10000L)
-            .build();
+        return PaymentConfirmRequest.of("test_payment_key", "ORDER_123", 10000L);
     }
 
     @Test

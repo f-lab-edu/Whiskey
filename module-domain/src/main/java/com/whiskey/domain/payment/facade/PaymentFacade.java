@@ -56,7 +56,7 @@ public class PaymentFacade {
             PaymentConfirmRequest request = new PaymentConfirmRequest(
                 command.paymentKey(),
                 command.orderId(),
-                command.amount().longValueExact()
+                command.amount()
             );
 
             return paymentClient.confirmPayment(request);

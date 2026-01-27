@@ -78,7 +78,7 @@ class JwtAuthenticationFilterTest {
     void JWT_우회_인증실패() throws Exception {
         mockMvc.perform(get("/api/test")
                 .header(jwtBypassHeaderName, "wrong-token"))
-            .andExpect(status().isForbidden());
+            .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -90,7 +90,7 @@ class JwtAuthenticationFilterTest {
         // when & then
         mockMvc.perform(get("/api/test")
                 .header("Authorization", "Bearer " + invalidToken))
-            .andExpect(status().isForbidden());
+            .andExpect(status().isUnauthorized());
 
         verify(jwtTokenProvider, never()).getAuthentication(any());
     }
@@ -99,6 +99,6 @@ class JwtAuthenticationFilterTest {
     @DisplayName("JWT 토큰이 없을때 API 호출")
     void JWT_토큰없이_API_호출() throws Exception {
         mockMvc.perform(get("/api/test"))
-            .andExpect(status().isForbidden());
+            .andExpect(status().isUnauthorized());
     }
 }

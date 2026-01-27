@@ -10,7 +10,7 @@ import lombok.Builder;
 public record PaymentConfirmResponse(
     String paymentKey,
     String paymentOrderId,
-    BigDecimal totalAmount,
+    Long totalAmount,
     PaymentStatus paymentStatus,
     LocalDateTime approvedAt
 ) {

@@ -12,7 +12,6 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -44,7 +43,7 @@ public class Payment extends BaseEntity {
     private Order order;
 
     @Column(nullable = false)
-    private BigDecimal amount;
+    private Long amount;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -60,7 +59,7 @@ public class Payment extends BaseEntity {
     private LocalDateTime approvedDate;
 
     @Builder
-    public Payment(Member member, Order order, BigDecimal amount, String description) {
+    public Payment(Member member, Order order, Long amount, String description) {
         this.paymentOrderId = UUID.randomUUID().toString();
         this.paymentKey = null;
         this.member = member;
