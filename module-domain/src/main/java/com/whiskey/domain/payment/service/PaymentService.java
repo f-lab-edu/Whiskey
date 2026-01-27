@@ -3,6 +3,7 @@ package com.whiskey.domain.payment.service;
 import com.whiskey.domain.member.Member;
 import com.whiskey.domain.member.service.MemberService;
 import com.whiskey.domain.order.Order;
+import com.whiskey.domain.order.enums.OrderStatus;
 import com.whiskey.domain.order.service.OrderService;
 import com.whiskey.domain.payment.Payment;
 import com.whiskey.domain.payment.dto.PaymentCompleteRequest;
@@ -37,7 +38,7 @@ public class PaymentService {
 
         // 2. 주문 조회 및 체크
         Order order = orderService.getOrder(command.orderId());
-        order.validatePayment(member.getId(), command.amount());
+        order.validatePayment(member.getId(), order.getTotalPrice());
 
         // 3. 내 주문이 맞는지 확인
         if(!order.getMemberId().equals(member.getId())) {

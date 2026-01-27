@@ -3,7 +3,7 @@ package com.whiskey.domain.payment.dto;
 import com.whiskey.domain.payment.Payment;
 
 public record PaymentInfo(
-    long memberId,
+    Long memberId,
     Long amount,
     String description
 ) {
