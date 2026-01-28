@@ -69,7 +69,7 @@ jobs:
           envs: GITHUB_TOKEN,REGISTRY,IMAGE_NAME,DB_URL,DB_USERNAME,DB_PASSWORD,REDIS_HOST,REDIS_PORT,JWT_SECRET_KEY
           script: |
             # GitHub Container Registry 로그인
-            echo $GITHUB_TOKEN | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            echo "$GITHUB_TOKEN" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
             # 기존 컨테이너 중지 및 삭제
             docker stop whiskey-service || true
