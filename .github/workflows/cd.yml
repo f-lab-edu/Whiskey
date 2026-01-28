@@ -69,18 +69,15 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # GitHub Container Registry 로그인 (stdin 대신 환경변수 직접 사용)
-            echo "${GITHUB_TOKEN}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
             # 기존 컨테이너 중지 및 삭제
             docker stop whiskey-service || true
             docker rm whiskey-service || true
 
             # 최신 이미지 pull
-            docker pull ghcr.io/${{ github.repository_owner }}/whiskey:latest
+            docker pull ghcr.io/f-lab-edu/whiskey:latest
 
             # 새 컨테이너 실행 (한 줄로)
-            docker run -d --name whiskey-service -p 8080:8080 -e SPRING_PROFILES_ACTIVE=prod -e DB_URL="${{ secrets.DB_URL }}" -e DB_USERNAME="${{ secrets.DB_USERNAME }}" -e DB_PASSWORD="${{ secrets.DB_PASSWORD }}" -e REDIS_HOST="${{ secrets.REDIS_HOST }}" -e REDIS_PORT="${{ secrets.REDIS_PORT }}" -e JWT_SECRET_KEY="${{ secrets.JWT_SECRET_KEY }}" ghcr.io/${{ github.repository_owner }}/whiskey:latest
+            docker run -d --name whiskey-service -p 8080:8080 -e SPRING_PROFILES_ACTIVE=prod -e DB_URL="${{ secrets.DB_URL }}" -e DB_USERNAME="${{ secrets.DB_USERNAME }}" -e DB_PASSWORD="${{ secrets.DB_PASSWORD }}" -e REDIS_HOST="${{ secrets.REDIS_HOST }}" -e REDIS_PORT="${{ secrets.REDIS_PORT }}" -e JWT_SECRET_KEY="${{ secrets.JWT_SECRET_KEY }}" ghcr.io/f-lab-edu/whiskey:latest
 
             # 이전 이미지 정리
             docker image prune -f
