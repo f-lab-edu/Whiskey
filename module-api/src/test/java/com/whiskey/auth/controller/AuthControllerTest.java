@@ -3,9 +3,11 @@ package com.whiskey.auth.controller;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import com.whiskey.domain.auth.repository.RefreshTokenRepository;
 import com.whiskey.domain.member.Member;
 import com.whiskey.domain.member.enums.MemberStatus;
 import com.whiskey.domain.member.repository.MemberRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,10 +29,14 @@ public class AuthControllerTest {
     MemberRepository memberRepository;
 
     @Autowired
+    RefreshTokenRepository refreshTokenRepository;
+
+    @Autowired
     PasswordEncoder passwordEncoder;
 
     @BeforeEach
     void setUp() {
+        refreshTokenRepository.deleteAll();
         memberRepository.deleteAll();
         memberRepository.save(
             Member.builder()
@@ -55,5 +61,11 @@ public class AuthControllerTest {
             .andExpect(jsonPath("$.data.refreshToken").exists())
             .andExpect(jsonPath("$.data.tokenType").value("Bearer"))
             .andExpect(jsonPath("$.data.memberInfo.email").value("tester22@example.com"));
+    }
+
+    @AfterEach
+    void clearDatabase() {
+        refreshTokenRepository.deleteAll();
+        memberRepository.deleteAll();
     }
 }
