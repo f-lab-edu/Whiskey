@@ -17,7 +17,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Object>> handleCommonException(Exception exception) {
         log.error(exception.getMessage(), exception);
-        ErrorCode errorCode = ErrorCode.INTERNAL_SERVER_ERROR;
+        CommonErrorCode errorCode = CommonErrorCode.INTERNAL_SERVER_ERROR;
 
         ApiResponse<Object> response = new ApiResponse<>(
             false,
@@ -32,7 +32,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ApiResponse<Object>> handleBusinessException(BusinessException exception) {
         log.warn("code={}, message={}", exception.getErrorCode(), exception.getMessage());
-        ErrorCode errorCode = exception.getErrorCode();
+        BaseErrorCode errorCode = exception.getErrorCode();
         HttpStatus status = errorCode.getHttpStatus();
         String message = exception.getMessage();
         Object data = exception.getData();
@@ -50,7 +50,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Object>> handleMethodArgumentNotValidException(MethodArgumentNotValidException exception) {
         log.warn("Validation 실패: {}", exception.getBindingResult().getFieldErrors());
-        ErrorCode errorCode = ErrorCode.VALIDATION_ERROR;
 
         // 필드별 에러 메시지 추가
         Map<String, String> errorMessage = new HashMap<>();
@@ -60,11 +59,11 @@ public class GlobalExceptionHandler {
 
         ApiResponse<Object> response = new ApiResponse<>(
             false,
-            errorCode.name(),
-            errorCode.getMessage(),
+            HttpStatus.BAD_REQUEST.name(),
+            "유효성 검증에 실패했습니다.",
             errorMessage
         );
 
-        return ResponseEntity.status(errorCode.getHttpStatus()).body(response);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 }

@@ -29,18 +29,18 @@ public class AuthControllerTest {
     @Autowired
     PasswordEncoder passwordEncoder;
 
-    @BeforeEach
-    void setUp() {
-        memberRepository.deleteAll();
-        memberRepository.save(
-            Member.builder()
-                .email("tester22@example.com")
-                .passwordHash(passwordEncoder.encode("tester22@@"))
-                .status(MemberStatus.ACTIVE)
-                .memberName("테스터22")
-                .build()
-        );
-    }
+//    @BeforeEach
+//    void setUp() {
+//        memberRepository.deleteAll();
+//        memberRepository.save(
+//            Member.builder()
+//                .email("tester22@example.com")
+//                .passwordHash(passwordEncoder.encode("tester22@@"))
+//                .status(MemberStatus.ACTIVE)
+//                .memberName("테스터22")
+//                .build()
+//        );
+//    }
 
     @Test
     void login_success_return_jwt_token() throws Exception {

@@ -5,7 +5,7 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 @Deprecated
-public enum ErrorCode {
+public enum ErrorCode implements BaseErrorCode {
     VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "유효성 검증에 실패했습니다."),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버에 문제가 발생했습니다. 잠시 후 다시 시도해주세요."),
     CONFLICT(HttpStatus.CONFLICT, "이미 처리된 요청입니다."),
