@@ -38,7 +38,7 @@ class PaymentClientTest {
     @BeforeEach
     void setUp() {
         objectMapper = new ObjectMapper();
-        paymentClient = new PaymentClient(
+        paymentClient = new TossPaymentClient(
             restTemplate,
             objectMapper,
             properties
