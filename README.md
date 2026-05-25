@@ -13,15 +13,15 @@
 | 분류 | 기술 |
 |------|------|
 | Language | Java 21 |
-| Framework | Spring Boot 3.5.0, Spring Security, Spring Batch |
-| ORM | Spring Data JPA, QueryDSL |
+| Framework | Spring Boot 3.5.0, Spring Security, Spring Batch, Spring AOP, Spring Retry |
+| ORM | Spring Data JPA, QueryDSL 5.1.0 |
 | DB | MySQL 8.0, Flyway |
 | Cache | Redis 7 |
 | Auth | JWT (JJWT 0.11.5) |
 | Payment | Toss Payments API |
 | Infra | Docker, AWS EC2, AWS RDS, AWS ElastiCache |
-| CI/CD | GitHub Actions, GHCR |
-| Test | JUnit 5, Mockito, H2 |
+| CI/CD | GitHub Actions, GHCR, SonarCloud |
+| Test | JUnit 5, Mockito, H2, K6 |
 | Docs | Springdoc OpenAPI (Swagger) |
 
 ---
@@ -30,19 +30,37 @@
 
 ```
 whiskey-service/
-├── module-api      (Controller, Security, Batch, Spring Boot Entry Point)
-├── module-domain   (Entity, Service, Repository)
-├── module-payment  (Toss Payments API Client)
-└── module-common   (API Response, Error Code, Shared Utilities)
+├── module-api      (Controller, Security Filter, Batch, AOP, Spring Boot Entry Point)
+├── module-domain   (Entity, Service, Repository, Event/Listener, Scheduler)
+├── module-payment  (PaymentClient 인터페이스, Toss/Mock 구현체)
+└── module-common   (API Response, Error Code, JWT, 공통 유틸리티)
 ```
 
 **모듈 의존 관계**
 ```
-module-api → module-domain, module-common, module-payment
-module-domain → module-common, module-payment
+module-api     → module-domain, module-common, module-payment
+module-domain  → module-common, module-payment
 module-payment → module-common
-module-common → (standalone)
+module-common  → (standalone)
 ```
+
++ DB 스키마는 Flyway 마이그레이션(`module-api/src/main/resources/db/migration`, V1~V16)으로 버전 관리
++ 외부 결제 연동은 `PaymentClient` 인터페이스로 추상화 → 운영은 `TossPaymentClient`, 테스트/부하 테스트는 `MockPaymentClient`(`test` 프로파일)
+
+---
+
+## 🚀 실행 방법
+
+```bash
+# 1. 로컬 인프라(MySQL 8.0, Redis 7) 기동
+docker compose -f docker/docker-compose.yml up -d
+
+# 2. 애플리케이션 실행 (local 프로파일)
+./gradlew :module-api:bootRun
+```
+
++ API 문서(Swagger UI) : `http://localhost:8080/swagger-ui.html`
++ 기본 프로파일 : `local` — MySQL `localhost:3306/whiskey`, Redis `localhost:6379`
 
 ---
 
@@ -51,8 +69,9 @@ module-common → (standalone)
 ### 위스키
 | Method | URI | 설명 |
 |--------|-----|------|
-| `GET` | `/api/whiskey` | 목록 조회 (커서 기반 페이지네이션, 필터링) |
-| `GET` | `/api/whiskey/{id}` | 단건 조회 |
+| `GET` | `/api/whiskey` | 목록 조회 (커서 기반 페이지네이션, 다중 필터) |
+| `GET` | `/api/whiskey/{id}` | 단건 조회 (조회 활동 로그 기록) |
+| `GET` | `/api/whiskey/{id}/reviews` | 위스키별 리뷰 조회 (최신순 / 평점순 정렬) |
 | `POST` | `/api/whiskey` | 등록 (ADMIN) |
 | `PUT` | `/api/whiskey/{id}` | 수정 (ADMIN) |
 | `DELETE` | `/api/whiskey/{id}` | 삭제 (ADMIN) |
@@ -61,6 +80,7 @@ module-common → (standalone)
 | Method | URI | 설명 |
 |--------|-----|------|
 | `POST` | `/api/members` | 회원가입 |
+| `GET` | `/api/members/{id}` | 회원 단건 조회 |
 | `POST` | `/api/auth/login` | 로그인 (Access + Refresh Token 발급) |
 | `POST` | `/api/auth/token/refresh` | Access Token 재발급 |
 
@@ -70,7 +90,6 @@ module-common → (standalone)
 | `POST` | `/api/reviews` | 리뷰 작성 |
 | `PUT` | `/api/reviews/{id}` | 리뷰 수정 |
 | `DELETE` | `/api/reviews/{id}` | 리뷰 삭제 |
-| `GET` | `/api/whiskey/{id}/reviews` | 위스키별 리뷰 조회 |
 
 ### 주문 & 결제
 | Method | URI | 설명 |
@@ -79,6 +98,8 @@ module-common → (standalone)
 | `PATCH` | `/api/order/{orderId}/cancel` | 주문 취소 |
 | `POST` | `/api/payments/prepare` | 결제 준비 (orderId 발급) |
 | `POST` | `/api/payments/confirm` | 결제 확정 |
+
+> 대량 리뷰 더미 데이터는 Spring Batch 잡(`POST /api/batch/review-dummy-data`)으로 적재합니다.
 
 ---
 
@@ -95,7 +116,7 @@ module-common → (standalone)
 ### 1. Redis Sorted Set 기반 예약 만료 처리
 
 **배경**
-- 결제 예약 후 10분 이내 미결제 시 자동 취소 필요
+- 결제 예약 후 일정 시간(기본 10분) 이내 미결제 시 자동 취소 필요
 - 미결제 예약이 재고를 점유하는 문제 방지
 
 **방안 비교**
@@ -108,9 +129,9 @@ module-common → (standalone)
 | 장애 내성 | 높음 | 높음 | DB 백업으로 보완 |
 
 **최종 결정**
-+ 만료 시간을 score로 Redis Sorted Set에 저장, 1분마다 현재 시간 이하 score 일괄 처리
-+ Redis 장애 대비 DB에도 만료시간 저장 → DB 폴링으로 복구 가능
-+ 결과 : DB 부하 없이 안정적인 만료 처리, 평균 지연 < 1분
++ 주문 생성 트랜잭션 커밋 후(`AFTER_COMMIT`) 만료 시각을 score로 Redis Sorted Set에 등록
++ `ExpireCheckScheduler`가 1분마다 현재 시각 이하 score를 `rangeByScore`로 일괄 조회·만료 처리
++ 결과 : 폴링으로 인한 상시 DB 부하 없이 안정적인 만료 처리, 평균 지연 < 1분
 
 ---
 
@@ -129,23 +150,39 @@ module-common → (standalone)
 | 리뷰 저장 안정성 | 낮음 | 낮음 | 높음 |
 
 **최종 결정**
-+ 리뷰 저장 트랜잭션 커밋 후 `AFTER_COMMIT` 이벤트 발행
-+ Redis 업데이트 실패 시 다음 조회 시 DB에서 재계산하여 캐시 갱신
-+ 결과 : 리뷰 작성 실패율 0% (Redis 장애와 무관)
++ 리뷰 저장 트랜잭션 커밋 후 `AFTER_COMMIT` 이벤트로 평점 집계 실행 → 리뷰 저장과 분리
++ 평점 합계 / 리뷰 수를 Redis 원자적 연산(`INCR` / `DECR`)으로 갱신해 동시성 문제 회피
++ Redis 일시 장애 대비 `@Retryable`로 최대 5회(1초 백오프) 재시도
++ 결과 : Redis 장애가 리뷰 작성 트랜잭션에 영향을 주지 않음
 
 ---
 
-### 3. 결제 API 트랜잭션 분리 + 재시도
+### 3. 결제 API 트랜잭션 분리 + 재시도 + 보상
 
 **배경**
 - Toss Payments API 호출이 네트워크 상태에 따라 지연됨
 - 주문 트랜잭션 내부에서 외부 API 호출 → DB 커넥션 점유 → 커넥션 풀 고갈 위험
 
 **최종 결정**
-+ 주문 생성 → 결제 API 호출 → 주문 확정(재고 처리) 3단계로 트랜잭션 분리
-+ Spring Retry로 결제 API 최대 3회 재시도 (타임아웃 시)
-+ 재시도 전부 실패 시 보상 트랜잭션으로 주문 취소 처리
-+ 결과 : DB 커넥션 점유 시간 감소, 일시적 네트워크 오류 대응 가능
++ 주문 생성 → (트랜잭션 밖) 결제 API 호출 → 주문 확정(재고 처리)으로 단계 분리해 DB 커넥션 점유 최소화
++ 5xx / 네트워크 오류는 Spring Retry로 최대 3회 시도, 4xx는 재시도 없이 즉시 실패 처리
++ 재시도 실패 시 보상 트랜잭션으로 결제 취소 + 주문 취소
++ 보상까지 실패하면 Redis Sorted Set에 적재 후 1분 주기 스케줄러가 지수 백오프로 재시도(최대 5회, 이후 수동 처리)
++ 결과 : DB 커넥션 점유 시간 감소, 일시적 네트워크 오류 및 보상 실패까지 단계적 대응
+
+---
+
+### 4. AOP + 비동기 활동 로그
+
+**배경**
+- 위스키 조회/검색 등 사용자 활동 이력 수집 필요
+- 로깅 로직이 비즈니스 코드에 섞이는 문제와, 동기 저장으로 인한 응답 지연 우려
+
+**최종 결정**
++ `@ActivityLog` 커스텀 애너테이션 + AOP(`@Around`)로 로깅을 비즈니스 코드와 분리
++ `@TargetId` 파라미터로 대상 ID 추출, SecurityContext에서 회원 ID 추출
++ `@Async`(전용 스레드풀) + `REQUIRES_NEW` 트랜잭션으로 비동기 저장 → 본 요청 지연 없음
++ 로그 저장 실패를 예외 격리하여 본 기능에 영향 없음
 
 ---
 
@@ -169,7 +206,10 @@ module-common → (standalone)
 | RDS | db.t4g.micro (HikariCP 10, 이론상 최대 300 TPS) |
 | ElastiCache | Redis (JWT 블랙리스트, 주문 만료, 결제 재시도, 평점 집계) |
 
-**성능 테스트 도구 : Artillery** (nGrinder 대비 설정 비용 낮음, YAML 기반 시나리오)
++ **성능 테스트 도구 : K6**
+    - 초기에는 Artillery를 검토했으나, 단계적 부하(ramp-up)·조건 분기 등 시나리오를 코드로 표현하기에 K6가 더 적합하다고 판단해 전환
+    - JavaScript 기반 시나리오로 복잡한 사용자 흐름 작성 및 임계값(threshold) 검증 용이
++ K6 부하 테스트 시나리오 작성 진행 중 (`feature/k6-load-test`)
 
 ---
 
