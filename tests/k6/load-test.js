@@ -44,7 +44,11 @@ export const options = {
   },
 };
 
-const BASE_URL = 'http://localhost:8080';
+// 실행 예시:
+//   로컬     : k6 run tests/k6/load-test.js
+//   원격     : k6 run -e BASE_URL=https://api.example.com tests/k6/load-test.js
+//   k6 Cloud : k6 cloud run -e BASE_URL=https://api.example.com tests/k6/load-test.js
+const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080';
 
 const WHISKEY_IDS = Array.from({ length: 25 }, (_, i) => i + 1);
 const STOCK_IDS = [1, 2, 3, 4, 5];
@@ -57,9 +61,14 @@ const FILTER_COMBINATIONS = [
   {},
 ];
 
+function buildQueryString(params) {
+  return Object.entries(params)
+      .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+      .join('&');
+}
+
 export function setup() {
   const accounts = Array.from({ length: 9 }, (_, i) => {
-    // const num = String(i + 1).padStart(2, '0');
     const num = String(i + 1);
     return {
       email: `tester${num}${num}@example.com`,
@@ -102,9 +111,8 @@ export function browse({ sessions }) {
     check(res, { '단건 조회 성공': r => r.status === 200 });
   } else {
     const filter = FILTER_COMBINATIONS[Math.floor(Math.random() * FILTER_COMBINATIONS.length)];
-    // const params = new URLSearchParams({ size: 10, ...filter }).toString();
-    const params = Object.entries({ size: 10, ...filter });
-    const res = http.get(`${BASE_URL}/api/whiskey?${params}`, { headers });
+    const query = buildQueryString({ size: 10, ...filter });
+    const res = http.get(`${BASE_URL}/api/whiskey?${query}`, { headers });
     check(res, { '목록 조회 성공': r => r.status === 200 });
   }
 
