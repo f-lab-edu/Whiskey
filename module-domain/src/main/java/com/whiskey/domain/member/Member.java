@@ -1,6 +1,7 @@
 package com.whiskey.domain.member;
 
 import com.whiskey.domain.base.BaseEntity;
+import com.whiskey.domain.member.enums.MemberRole;
 import com.whiskey.domain.member.enums.MemberStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -37,16 +38,21 @@ public class Member extends BaseEntity {
     @Column(nullable = false)
     private MemberStatus status;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private MemberRole role;
+
     @CreatedDate
     @Column(nullable = false, name = "reg_date")
     private LocalDateTime regDate;
 
     @Builder
-    public Member(String passwordHash, String memberName, String email, MemberStatus status) {
+    public Member(String passwordHash, String memberName, String email, MemberStatus status, MemberRole role) {
         this.passwordHash = passwordHash;
         this.memberName = memberName;
         this.email = email;
         this.status = status;
+        this.role = role != null ? role : MemberRole.USER;
     }
 
     // 휴면계정 체크

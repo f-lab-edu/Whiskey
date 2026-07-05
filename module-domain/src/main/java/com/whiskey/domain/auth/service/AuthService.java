@@ -15,11 +15,11 @@ import com.whiskey.security.jwt.JwtTokenProvider;
 import jakarta.transaction.Transactional;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Collection;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -41,9 +41,7 @@ public class AuthService {
 
             tokenService.invalidate(member.getId());
 
-            List<SimpleGrantedAuthority> authorities = List.of(
-                new SimpleGrantedAuthority("ROLE_USER")
-            );
+            Collection<? extends GrantedAuthority> authorities = member.getRole().getAuthority();
 
             String accessToken = jwtTokenProvider.generateToken(member.getId(), authorities);
             String refreshToken = jwtTokenProvider.generateRefreshToken(member.getId());
@@ -121,9 +119,10 @@ public class AuthService {
             throw new BusinessException(AuthErrorCode.REFRESH_TOKEN_INVALID);
         }
 
-        List<SimpleGrantedAuthority> authorities = List.of(
-            new SimpleGrantedAuthority("ROLE_USER")
-        );
+        Member member = memberRepository.findById(memberId)
+            .orElseThrow(() -> new BusinessException(AuthErrorCode.MEMBER_NOT_FOUND));
+
+        Collection<? extends GrantedAuthority> authorities = member.getRole().getAuthority();
 
         String newAccessToken = jwtTokenProvider.generateToken(memberId, authorities);
 

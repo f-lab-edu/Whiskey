@@ -1,6 +1,6 @@
 package com.whiskey.config;
 
-import com.whiskey.domain.user.Role;
+import com.whiskey.domain.member.enums.MemberRole;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,7 +31,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(
                 authorize -> authorize
                     .requestMatchers("/swagger-ui/**", "/swagger-resources/**", "/v3/api-docs/**", "/v3/api-docs").permitAll()
-                    .requestMatchers("/api/test/**", "/api/batch/**").permitAll()
+                    .requestMatchers("/api/test/**").permitAll()
+                    .requestMatchers("/api/batch/**").hasRole(MemberRole.ADMIN.name())
                     .requestMatchers(HttpMethod.GET, "/request-payment.html", "/api/payments/payment-success", "/api/payments/payment-fail").permitAll()
 
                     // Member
@@ -43,7 +44,7 @@ public class SecurityConfig {
 
                     // Whiskey (R만 USER, ADMIN 가능, CUD는 ADMIN만)
                     .requestMatchers(HttpMethod.GET, "/api/whiskey/**").authenticated()
-                    .requestMatchers("/api/whiskey/**").hasRole(Role.ADMIN.getRole())
+                    .requestMatchers("/api/whiskey/**").hasRole(MemberRole.ADMIN.name())
 
                     // Reviews
                     .requestMatchers(HttpMethod.GET, "/api/whiskey/{id}/reviews").authenticated()
