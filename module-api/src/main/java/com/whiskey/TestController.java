@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @Slf4j
-@Profile({"local", "loadtest", "test"})
+@Profile({"local", "test"})
 public class TestController {
     @GetMapping("/api/test")
     public ResponseEntity<Map<String, Object>> test(@CurrentMemberId Long memberId) {
