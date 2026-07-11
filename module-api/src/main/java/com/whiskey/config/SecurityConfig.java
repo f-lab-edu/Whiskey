@@ -31,7 +31,6 @@ public class SecurityConfig {
             .authorizeHttpRequests(
                 authorize -> authorize
                     .requestMatchers("/swagger-ui/**", "/swagger-resources/**", "/v3/api-docs/**", "/v3/api-docs").permitAll()
-                    .requestMatchers("/api/test/**").permitAll()
                     .requestMatchers("/api/batch/**").hasRole(MemberRole.ADMIN.name())
                     .requestMatchers(HttpMethod.GET, "/request-payment.html", "/api/payments/payment-success", "/api/payments/payment-fail").permitAll()
 
