@@ -3,6 +3,8 @@ package com.whiskey.domain.order;
 import com.whiskey.domain.base.BaseEntity;
 import com.whiskey.domain.order.enums.OrderStatus;
 import com.whiskey.domain.stock.StockReservation;
+import com.whiskey.exception.BusinessException;
+import com.whiskey.exception.CommonErrorCode;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -86,7 +88,7 @@ public class Order extends BaseEntity {
 
     public void validatePayment(Long memberId, BigDecimal totalPrice) {
         if(!this.memberId.equals(memberId)) {
-            throw new IllegalArgumentException("내 주문만 결제할 수 있습니다.");
+            throw new BusinessException(CommonErrorCode.FORBIDDEN, "내 주문만 결제할 수 있습니다.");
         }
 
         if(this.orderStatus != OrderStatus.PENDING) {
