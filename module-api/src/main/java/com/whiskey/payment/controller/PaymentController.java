@@ -78,7 +78,7 @@ public class PaymentController {
     }
 
     @GetMapping("/payment-fail")
-    public String paymentFail(Model model, @RequestParam(name = "paymentKey") String code, @RequestParam(name = "orderId") String message, @RequestParam(name = "amount") String orderId) {
+    public String paymentFail(Model model, @RequestParam(name = "code") String code, @RequestParam(name = "message") String message, @RequestParam(name = "orderId") String orderId) {
         log.error("=== 결제 실패 ===");
         log.error("Error Code: {}", code);
         log.error("Error Message: {}", message);
