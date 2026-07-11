@@ -35,8 +35,9 @@ payment:
     retry-time: 5
 toss:
   payment:
-    secret-key: test_sk_pP2YxJ4K87apm2lqMegpVRGZwXLO
-    client-key: test_ck_pP2YxJ4K87Z9dKKBg9y0rRGZwXLO
+    # 키는 yml 에 커밋하지 않는다. 로컬은 .env, 배포는 --env-file 로 주입 (.env.example 참고)
+    secret-key: ${TOSS_SECRET_KEY}
+    client-key: ${TOSS_CLIENT_KEY}
     base-url: https://api.tosspayments.com/v1
     connect-timeout: 3000
     read-timeout: 10000
