@@ -14,6 +14,8 @@ import com.whiskey.domain.review.dto.ReviewInfo;
 import com.whiskey.domain.review.repository.ReviewRepository;
 import com.whiskey.domain.whiskey.Whiskey;
 import com.whiskey.domain.whiskey.service.WhiskeyService;
+import com.whiskey.exception.BusinessException;
+import com.whiskey.exception.CommonErrorCode;
 import com.whiskey.exception.ErrorCode;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -68,7 +70,7 @@ public class ReviewService {
         Review review = checkExistReview(id);
 
         if(!review.getMember().getId().equals(reviewDto.memberId())) {
-            throw ErrorCode.UNAUTHORIZED.exception("본인의 리뷰만 수정가능합니다.");
+            throw new BusinessException(CommonErrorCode.FORBIDDEN, "본인의 리뷰만 수정가능합니다.");
         }
 
         if(!whiskey.getId().equals(reviewDto.whiskeyId())) {
@@ -89,7 +91,7 @@ public class ReviewService {
         Whiskey whiskey = checkExistWhiskey(review.getWhiskey().getId());
 
         if(!review.getMember().getId().equals(memberId)) {
-            throw ErrorCode.UNAUTHORIZED.exception("본인의 리뷰만 삭제가능합니다.");
+            throw new BusinessException(CommonErrorCode.FORBIDDEN, "본인의 리뷰만 삭제가능합니다.");
         }
 
         review.delete();

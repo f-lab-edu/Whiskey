@@ -13,6 +13,8 @@ import com.whiskey.domain.payment.repository.PaymentRepository;
 import com.whiskey.domain.stock.repository.StockRepository;
 import com.whiskey.domain.stock.Stock;
 import com.whiskey.domain.stock.service.StockReservationService;
+import com.whiskey.exception.BusinessException;
+import com.whiskey.exception.CommonErrorCode;
 import com.whiskey.exception.ErrorCode;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -94,7 +96,7 @@ public class OrderService {
         Order order = getOrder(orderId);
 
         if(!order.getMemberId().equals(memberId)) {
-            throw new IllegalArgumentException("본인의 주문만 취소가 가능합니다.");
+            throw new BusinessException(CommonErrorCode.FORBIDDEN, "본인의 주문만 취소가 가능합니다.");
         }
 
         order.cancelReservation();

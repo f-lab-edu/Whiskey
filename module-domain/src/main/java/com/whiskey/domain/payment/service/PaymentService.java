@@ -12,6 +12,8 @@ import com.whiskey.domain.payment.dto.PaymentPrepareCommand;
 import com.whiskey.domain.payment.dto.PaymentPrepareResult;
 import com.whiskey.domain.payment.enums.PaymentStatus;
 import com.whiskey.domain.payment.repository.PaymentRepository;
+import com.whiskey.exception.BusinessException;
+import com.whiskey.exception.CommonErrorCode;
 import com.whiskey.exception.ErrorCode;
 import com.whiskey.payment.client.PaymentClient;
 import com.whiskey.payment.dto.PaymentResponse;
@@ -42,7 +44,7 @@ public class PaymentService {
 
         // 3. 내 주문이 맞는지 확인
         if(!order.getMemberId().equals(member.getId())) {
-            throw new IllegalArgumentException("내 주문만 결제할 수 있습니다.");
+            throw new BusinessException(CommonErrorCode.FORBIDDEN, "내 주문만 결제할 수 있습니다.");
         }
 
         // 4. 주문 상태 확인
@@ -83,7 +85,7 @@ public class PaymentService {
         Payment payment = paymentRepository.findByPaymentOrderId(command.orderId()).orElseThrow(() -> new IllegalStateException("결제 정보를 찾을 수 없습니다"));
 
         if(!payment.getMember().getId().equals(command.memberId())) {
-            throw new IllegalArgumentException("memberId가 다릅니다.");
+            throw new BusinessException(CommonErrorCode.FORBIDDEN, "본인의 결제만 승인할 수 있습니다.");
         }
 
         if(!payment.getAmount().equals(command.amount())) {
