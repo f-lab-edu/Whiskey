@@ -15,7 +15,7 @@ import com.whiskey.domain.stock.Stock;
 import com.whiskey.domain.stock.service.StockReservationService;
 import com.whiskey.exception.BusinessException;
 import com.whiskey.exception.CommonErrorCode;
-import com.whiskey.exception.ErrorCode;
+import com.whiskey.exception.OrderErrorCode;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -53,7 +53,7 @@ public class OrderService {
         List<Stock> stocks = stockRepository.findAllById(stockIds);
 
         if (stocks.size() != stockIds.size()) {
-            throw new IllegalArgumentException("재고가 없는 상품이 포함되어 있습니다.");
+            throw OrderErrorCode.INVALID_ORDER_ITEM.exception("재고가 없는 상품이 포함되어 있습니다.");
         }
 
         // 총 금액 계산
@@ -88,7 +88,7 @@ public class OrderService {
         return stocks.stream()
             .filter(stock -> stock.getId().equals(stockId))
             .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("재고가 없는 상품이 포함되어 있습니다. stockId: " + stockId));
+            .orElseThrow(() -> OrderErrorCode.INVALID_ORDER_ITEM.exception("재고가 없는 상품이 포함되어 있습니다. stockId: " + stockId));
     }
 
     @Transactional
@@ -129,6 +129,6 @@ public class OrderService {
     }
 
     public Order getOrder(Long orderId) {
-        return orderRepository.findById(orderId).orElseThrow(() -> ErrorCode.NOT_FOUND.exception("존재하지 않는 주문입니다."));
+        return orderRepository.findById(orderId).orElseThrow(() -> OrderErrorCode.ORDER_NOT_FOUND.exception("존재하지 않는 주문입니다."));
     }
 }

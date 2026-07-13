@@ -16,7 +16,8 @@ import com.whiskey.domain.whiskey.Whiskey;
 import com.whiskey.domain.whiskey.service.WhiskeyService;
 import com.whiskey.exception.BusinessException;
 import com.whiskey.exception.CommonErrorCode;
-import com.whiskey.exception.ErrorCode;
+import com.whiskey.exception.ReviewErrorCode;
+import com.whiskey.exception.WhiskeyErrorCode;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +44,7 @@ public class ReviewService {
 
         boolean check = reviewRepository.existsByWhiskeyIdAndMemberId(whiskey.getId(), reviewDto.memberId());
         if (check) {
-            throw ErrorCode.CONFLICT.exception("이미 리뷰를 등록하셨습니다.");
+            throw ReviewErrorCode.REVIEW_ALREADY_EXISTS.exception("이미 리뷰를 등록하셨습니다.");
         }
 
         Review review = Review.builder()
@@ -74,7 +75,7 @@ public class ReviewService {
         }
 
         if(!whiskey.getId().equals(reviewDto.whiskeyId())) {
-            throw ErrorCode.NOT_FOUND.exception("잘못된 위스키 정보입니다.");
+            throw WhiskeyErrorCode.WHISKEY_NOT_FOUND.exception("잘못된 위스키 정보입니다.");
         }
 
         int oldRating = review.getStarRate();
@@ -107,7 +108,7 @@ public class ReviewService {
     }
 
     private Review checkExistReview(long reviewId) {
-        return reviewRepository.findById(reviewId).orElseThrow(() -> ErrorCode.NOT_FOUND.exception("리뷰를 찾을 수 없습니다."));
+        return reviewRepository.findById(reviewId).orElseThrow(() -> ReviewErrorCode.REVIEW_NOT_FOUND.exception("리뷰를 찾을 수 없습니다."));
     }
 
     private List<Review> fetchReviewsBySortType(ReviewCursorRequest request) {

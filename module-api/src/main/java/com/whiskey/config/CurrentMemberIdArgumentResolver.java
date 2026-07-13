@@ -1,7 +1,7 @@
 package com.whiskey.config;
 
 import com.whiskey.annotation.CurrentMemberId;
-import com.whiskey.exception.ErrorCode;
+import com.whiskey.exception.AuthErrorCode;
 import org.springframework.core.MethodParameter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,7 +27,7 @@ public class CurrentMemberIdArgumentResolver implements HandlerMethodArgumentRes
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if(authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getName())) {
-            throw ErrorCode.UNAUTHORIZED.exception("인증에 실패했습니다.");
+            throw AuthErrorCode.UNAUTHENTICATED.exception("인증에 실패했습니다.");
         }
 
         String memberId = authentication.getName();

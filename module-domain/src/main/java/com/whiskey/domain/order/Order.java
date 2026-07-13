@@ -5,6 +5,8 @@ import com.whiskey.domain.order.enums.OrderStatus;
 import com.whiskey.domain.stock.StockReservation;
 import com.whiskey.exception.BusinessException;
 import com.whiskey.exception.CommonErrorCode;
+import com.whiskey.exception.OrderErrorCode;
+import com.whiskey.exception.PaymentErrorCode;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -92,27 +94,27 @@ public class Order extends BaseEntity {
         }
 
         if(this.orderStatus != OrderStatus.PENDING) {
-            throw new IllegalArgumentException("결제 대기 중인 주문이 아닙니다.");
+            throw OrderErrorCode.INVALID_ORDER_STATUS.exception("결제 대기 중인 주문이 아닙니다.");
         }
 
         if(this.totalPrice.compareTo(totalPrice) != 0) {
-            throw new IllegalArgumentException("결제 금액이 일치하지 않습니다.");
+            throw PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH.exception("결제 금액이 일치하지 않습니다.");
         }
     }
 
     private void checkConfirm() {
         if(this.orderStatus != OrderStatus.PENDING) {
-            throw new IllegalStateException("대기 상태에서만 주문 확정이 가능합니다.");
+            throw OrderErrorCode.INVALID_ORDER_STATUS.exception("대기 상태에서만 주문 확정이 가능합니다.");
         }
 
         if(LocalDateTime.now().isAfter(expireAt)) {
-            throw new IllegalStateException("만료된 주문은 확정할 수 없습니다.");
+            throw OrderErrorCode.INVALID_ORDER_STATUS.exception("만료된 주문은 확정할 수 없습니다.");
         }
     }
 
     private void checkCancel() {
         if(this.orderStatus == OrderStatus.CANCELLED || this.orderStatus == OrderStatus.EXPIRED) {
-            throw new IllegalStateException("이미 취소된 주문입니다.");
+            throw OrderErrorCode.ORDER_ALREADY_CANCELLED.exception("이미 취소된 주문입니다.");
         }
     }
 }
