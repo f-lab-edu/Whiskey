@@ -23,6 +23,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.dao.ConcurrencyFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,6 +47,16 @@ public class OrderService {
     @Value("${order.reservation.expire-time:30}")
     private int expireTime;
 
+    // 동일 재고에 동시 주문이 몰리면 낙관락 버전 충돌(ObjectOptimisticLockingFailureException) 또는
+    // InnoDB 데드락/락 대기(CannotAcquireLockException)로 표면화된다.
+    // 두 경우의 공통 상위인 ConcurrencyFailureException을 재시도 대상으로 잡아, 새 트랜잭션에서 전체를 원자적으로 재실행한다.
+    // random 지터로 재시도가 같은 시점에 몰려 다시 충돌하는 lockstep을 완화한다.
+    // (고경합 상황의 근본 해법은 별도 이슈 #65의 분산락 검토 대상)
+    @Retryable(
+        retryFor = ConcurrencyFailureException.class,
+        maxAttempts = 3,
+        backoff = @Backoff(delay = 100, multiplier = 2, random = true)
+    )
     @Transactional
     public OrderResult createOrder(OrderCommand command) {
         // 주문 생성 및 재고 예약
@@ -73,6 +87,13 @@ public class OrderService {
         // 주문 만료시간 이벤트 발행
         eventPublisher.publishEvent(new OrderExpiryRegisteredEvent(order.getId(), expireAt));
         return new OrderResult(order.getId());
+    }
+
+    // 재시도(3회)를 모두 소진한 경우: 고경합으로 재고 예약 실패 → 409 응답
+    @Recover
+    public OrderResult recoverCreateOrder(ConcurrencyFailureException e, OrderCommand command) {
+        log.warn("재고 예약 동시성 충돌 재시도 소진 - memberId: {}, cause: {}", command.memberId(), e.getClass().getSimpleName());
+        throw OrderErrorCode.STOCK_RESERVATION_CONFLICT.exception();
     }
 
     private BigDecimal calculateTotalPrice(List<OrderItem> items, List<Stock> stocks) {
