@@ -10,7 +10,6 @@ import com.whiskey.domain.member.enums.MemberStatus;
 import com.whiskey.domain.member.repository.MemberRepository;
 import com.whiskey.exception.AuthErrorCode;
 import com.whiskey.exception.BusinessException;
-import com.whiskey.exception.ErrorCode;
 import com.whiskey.security.jwt.JwtTokenProvider;
 import jakarta.transaction.Transactional;
 import java.time.Duration;
@@ -55,7 +54,7 @@ public class AuthService {
             return new JwtResponse(accessToken, refreshToken, "Bearer", expireTime, memberInfo);
         }
         catch(Exception e) {
-            throw ErrorCode.UNAUTHORIZED.exception("인증에 실패했습니다.");
+            throw AuthErrorCode.UNAUTHENTICATED.exception("인증에 실패했습니다.");
         }
     }
 

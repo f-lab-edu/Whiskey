@@ -4,7 +4,7 @@ import com.whiskey.domain.member.Member;
 import com.whiskey.domain.member.dto.MemberInfo;
 import com.whiskey.domain.member.enums.MemberStatus;
 import com.whiskey.dto.ValidationErrorValue;
-import com.whiskey.exception.ErrorCode;
+import com.whiskey.exception.MemberErrorCode;
 import com.whiskey.domain.member.repository.MemberRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -41,19 +41,19 @@ public class MemberService {
             memberRepository.save(member);
         }
         catch(DataIntegrityViolationException e) {
-            throw ErrorCode.CONFLICT.exception("이미 가입된 이메일입니다.");
+            throw MemberErrorCode.EMAIL_ALREADY_EXISTS.exception("이미 가입된 이메일입니다.");
         }
     }
 
     private void checkDuplicate(String email) {
         if(memberRepository.existsByEmailAndStatus(email, MemberStatus.ACTIVE)) {
             ValidationErrorValue errorValue = new ValidationErrorValue("email", email, "duplicate");
-            throw ErrorCode.CONFLICT.exception("이미 가입된 이메일입니다.", errorValue);
+            throw MemberErrorCode.EMAIL_ALREADY_EXISTS.exception("이미 가입된 이메일입니다.", errorValue);
         }
     }
 
     public MemberInfo getMemberById(Long id) {
-        Member member = memberRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 회원입니다."));
+        Member member = memberRepository.findById(id).orElseThrow(() -> MemberErrorCode.MEMBER_NOT_FOUND.exception("존재하지 않는 회원입니다."));
         return new MemberInfo(
             member.getId(),
             member.getMemberName(),
@@ -62,6 +62,6 @@ public class MemberService {
     }
 
     public Member getMember(Long memberId) {
-        return memberRepository.findById(memberId).orElseThrow(() -> ErrorCode.NOT_FOUND.exception("존재하지 않는 회원입니다."));
+        return memberRepository.findById(memberId).orElseThrow(() -> MemberErrorCode.MEMBER_NOT_FOUND.exception("존재하지 않는 회원입니다."));
     }
 }

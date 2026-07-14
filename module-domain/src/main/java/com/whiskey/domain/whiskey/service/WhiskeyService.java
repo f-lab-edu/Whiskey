@@ -7,7 +7,7 @@ import com.whiskey.domain.whiskey.dto.WhiskeySearchCondition;
 import com.whiskey.domain.whiskey.repository.WhiskeyRepository;
 import com.whiskey.domain.whiskey.Cask;
 import com.whiskey.domain.whiskey.Whiskey;
-import com.whiskey.exception.ErrorCode;
+import com.whiskey.exception.WhiskeyErrorCode;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -53,7 +53,7 @@ public class WhiskeyService {
         int count = whiskeyRepository.checkDuplicateWhiskey(whiskeyDto);
 
         if(count > 0) {
-            throw ErrorCode.CONFLICT.exception("이미 등록된 위스키입니다.");
+            throw WhiskeyErrorCode.WHISKEY_ALREADY_EXISTS.exception("이미 등록된 위스키입니다.");
         }
     }
 
@@ -61,7 +61,7 @@ public class WhiskeyService {
     public void update(Long id, WhiskeyCommand whiskeyDto) {
         checkDuplicate(whiskeyDto);
 
-        Whiskey whiskey = whiskeyRepository.findById(id).orElseThrow(() -> ErrorCode.NOT_FOUND.exception("위스키를 찾을 수 없습니다."));
+        Whiskey whiskey = whiskeyRepository.findById(id).orElseThrow(() -> WhiskeyErrorCode.WHISKEY_NOT_FOUND.exception("위스키를 찾을 수 없습니다."));
 
         whiskey.setDistillery(whiskeyDto.distillery());
         whiskey.setName(whiskeyDto.name());
@@ -86,14 +86,14 @@ public class WhiskeyService {
     @Transactional
     public void delete(Long id) {
         if(!whiskeyRepository.existsById(id)) {
-            throw ErrorCode.NOT_FOUND.exception("해당 위스키가 존재하지 않습니다.");
+            throw WhiskeyErrorCode.WHISKEY_NOT_FOUND.exception("해당 위스키가 존재하지 않습니다.");
         }
 
         whiskeyRepository.deleteById(id);
     }
 
     public WhiskeyInfo findById(Long id) {
-        Whiskey whiskey = whiskeyRepository.findById(id).orElseThrow(() -> ErrorCode.NOT_FOUND.exception("위스키를 찾을 수 없습니다."));
+        Whiskey whiskey = whiskeyRepository.findById(id).orElseThrow(() -> WhiskeyErrorCode.WHISKEY_NOT_FOUND.exception("위스키를 찾을 수 없습니다."));
         return WhiskeyInfo.from(whiskey);
     }
 
@@ -116,6 +116,6 @@ public class WhiskeyService {
     }
 
     public Whiskey checkExistWhiskey(long whiskeyId) {
-        return whiskeyRepository.findById(whiskeyId).orElseThrow(() -> ErrorCode.NOT_FOUND.exception("위스키를 찾을 수 없습니다."));
+        return whiskeyRepository.findById(whiskeyId).orElseThrow(() -> WhiskeyErrorCode.WHISKEY_NOT_FOUND.exception("위스키를 찾을 수 없습니다."));
     }
 }

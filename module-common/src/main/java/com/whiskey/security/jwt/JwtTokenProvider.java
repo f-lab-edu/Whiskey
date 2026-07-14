@@ -1,6 +1,6 @@
 package com.whiskey.security.jwt;
 
-import com.whiskey.exception.ErrorCode;
+import com.whiskey.exception.AuthErrorCode;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
@@ -115,7 +115,7 @@ public class JwtTokenProvider {
             return e.getClaims();
         }
         catch(JwtException e) {
-            throw ErrorCode.UNAUTHORIZED.exception("유효하지 않은 JWT입니다.");
+            throw AuthErrorCode.UNAUTHENTICATED.exception("유효하지 않은 JWT입니다.");
         }
     }
 

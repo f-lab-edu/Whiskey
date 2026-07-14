@@ -14,7 +14,8 @@ import com.whiskey.domain.payment.enums.PaymentStatus;
 import com.whiskey.domain.payment.repository.PaymentRepository;
 import com.whiskey.exception.BusinessException;
 import com.whiskey.exception.CommonErrorCode;
-import com.whiskey.exception.ErrorCode;
+import com.whiskey.exception.OrderErrorCode;
+import com.whiskey.exception.PaymentErrorCode;
 import com.whiskey.payment.client.PaymentClient;
 import com.whiskey.payment.dto.PaymentResponse;
 import java.math.BigDecimal;
@@ -49,15 +50,15 @@ public class PaymentService {
 
         // 4. 주문 상태 확인
         if(order.getOrderStatus() != OrderStatus.PENDING) {
-            throw new IllegalArgumentException("결제 대기 중인 주문이 아닙니다.");
+            throw OrderErrorCode.INVALID_ORDER_STATUS.exception("결제 대기 중인 주문이 아닙니다.");
         }
 
         if(order.getTotalPrice().compareTo(BigDecimal.valueOf(command.amount())) != 0) {
-            throw new IllegalArgumentException("결제 금액이 일치하지 않습니다.");
+            throw PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH.exception("결제 금액이 일치하지 않습니다.");
         }
 
         if(paymentRepository.existsByOrder(order) || order.getOrderStatus() == OrderStatus.CONFIRMED) {
-            throw new IllegalArgumentException("이미 결제된 주문입니다.");
+            throw PaymentErrorCode.ORDER_ALREADY_PAID.exception("이미 결제된 주문입니다.");
         }
 
         Payment payment = Payment.builder()
@@ -73,7 +74,7 @@ public class PaymentService {
 
     @Transactional
     public void completePayment(PaymentCompleteRequest request) {
-        Payment payment = paymentRepository.findByPaymentOrderId(request.paymentOrderId()).orElseThrow(() -> new IllegalStateException("결제 정보를 찾을 수 없습니다"));
+        Payment payment = paymentRepository.findByPaymentOrderId(request.paymentOrderId()).orElseThrow(() -> PaymentErrorCode.PAYMENT_NOT_FOUND.exception("결제 정보를 찾을 수 없습니다"));
 
         // 비즈니스 로직에만 집중
         // 예외 발생시 트랜잭션 롤백, PaymentFacade로 던져짐
@@ -82,18 +83,18 @@ public class PaymentService {
 
     @Transactional
     public Payment validatePayment(PaymentConfirmCommand command) {
-        Payment payment = paymentRepository.findByPaymentOrderId(command.orderId()).orElseThrow(() -> new IllegalStateException("결제 정보를 찾을 수 없습니다"));
+        Payment payment = paymentRepository.findByPaymentOrderId(command.orderId()).orElseThrow(() -> PaymentErrorCode.PAYMENT_NOT_FOUND.exception("결제 정보를 찾을 수 없습니다"));
 
         if(!payment.getMember().getId().equals(command.memberId())) {
             throw new BusinessException(CommonErrorCode.FORBIDDEN, "본인의 결제만 승인할 수 있습니다.");
         }
 
         if(!payment.getAmount().equals(command.amount())) {
-            throw new IllegalArgumentException("결제 금액이 일치하지 않습니다.");
+            throw PaymentErrorCode.PAYMENT_AMOUNT_MISMATCH.exception("결제 금액이 일치하지 않습니다.");
         }
 
         if(payment.getPaymentStatus() != PaymentStatus.PENDING) {
-            throw new IllegalArgumentException("결제 대기 중인 주문만 결제 승인이 가능합니다.");
+            throw PaymentErrorCode.INVALID_PAYMENT_STATUS.exception("결제 대기 중인 주문만 결제 승인이 가능합니다.");
         }
 
         return payment;

@@ -5,6 +5,9 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 public enum AuthErrorCode implements BaseErrorCode {
+    // 인증 실패 (인증 자체가 되지 않음)
+    UNAUTHENTICATED(HttpStatus.UNAUTHORIZED, "인증에 실패했습니다."),
+
     // JWT 토큰 관련
     TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "토큰이 만료되었습니다."),
     TOKEN_INVALID(HttpStatus.UNAUTHORIZED, "유효하지 않은 토큰입니다."),
