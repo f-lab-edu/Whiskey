@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    url: ${DB_URL}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+order:
+  reservation:
+    expire-time: 1   # 반복 측정 시 재고 회전을 위해 짧게 (prod 는 10)
+logging:
+  level:
+    com.whiskey.payment: INFO
+    org.springframework.web.client.RestTemplate: INFO
+    org.apache.http: INFO
