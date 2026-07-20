@@ -11,4 +11,6 @@ COPY module-api/build/libs/*.jar app.jar
 EXPOSE 8080
 
 # 애플리케이션 실행
-ENTRYPOINT ["java", "-jar", "-Dspring.profiles.active=prod", "app.jar"]
+# 프로필은 컨테이너 부팅 시 SPRING_PROFILES_ACTIVE env 로 주입 (CD 파이프라인 --env-file 채널로 통일)
+# env 미주입 시 application.yml 의 spring.profiles.active: local 로 폴백
+ENTRYPOINT ["java", "-jar", "app.jar"]

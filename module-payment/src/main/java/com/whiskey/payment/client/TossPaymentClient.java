@@ -28,7 +28,7 @@ import org.springframework.web.client.RestTemplate;
 
 @Slf4j
 @Component
-@Profile("!test")
+@Profile("!test & !loadtest")
 @RequiredArgsConstructor
 public class TossPaymentClient implements PaymentClient {
 
