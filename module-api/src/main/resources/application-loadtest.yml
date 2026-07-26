@@ -15,8 +15,16 @@ spring:
 order:
   reservation:
     expire-time: 1   # 반복 측정 시 재고 회전을 위해 짧게 (prod 는 10)
+loadtest:
+  seed:
+    # 부팅 시 LoadTestDataSeeder 가 적재하는 재고 수량. 피크 부하 1회는 1,600 남짓을 소모한다.
+    stock-quantity: 10000
 logging:
   level:
     com.whiskey.payment: INFO
     org.springframework.web.client.RestTemplate: INFO
     org.apache.http: INFO
+    # DEBUG 로 올리면 RetryTemplate 이 시도마다 "Retry: count=N" 을 남긴다.
+    # 낙관락 재시도가 실제로 도는지 확인할 때만 켠다 (hot-stock 시나리오). baseline 측정 시에는
+    # 주문 1건마다 로그가 찍혀 지연에 섞이므로 INFO 로 둔다.
+    org.springframework.retry: ${RETRY_LOG_LEVEL:INFO}
