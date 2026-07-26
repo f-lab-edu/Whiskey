@@ -8,6 +8,7 @@ import com.whiskey.domain.payment.dto.PaymentCompensationRequest;
 import com.whiskey.domain.payment.dto.PaymentCompleteRequest;
 import com.whiskey.domain.payment.dto.PaymentConfirmCommand;
 import com.whiskey.domain.payment.exception.PaymentProcessingException;
+import com.whiskey.domain.payment.service.PaymentCompensationQueue;
 import com.whiskey.domain.payment.service.PaymentCompensationService;
 import com.whiskey.domain.payment.service.PaymentService;
 import com.whiskey.payment.client.PaymentClient;
@@ -28,6 +29,7 @@ public class PaymentFacade {
     private final PaymentService paymentService;
     private final OrderService orderService;
     private final PaymentCompensationService paymentCompensationService;
+    private final PaymentCompensationQueue paymentCompensationQueue;
 
     @Value("${payment.compensation.retry-time:5}")
     private int retryTime;
@@ -118,7 +120,7 @@ public class PaymentFacade {
         LocalDateTime retryAt = LocalDateTime.now().plusMinutes(retryTime);
 
         try {
-            paymentCompensationService.compensateFailurePayment(compensatePaymentInfo, retryAt);
+            paymentCompensationQueue.save(compensatePaymentInfo, retryAt);
         }
         catch (Exception e) {
             // DLQ 적재 실패는 후처리의 후처리다. 여기서 예외를 올리면 호출부의 catch 블록이 중단되어

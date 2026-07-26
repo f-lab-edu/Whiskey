@@ -1,23 +1,16 @@
 package com.whiskey.domain.payment.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.whiskey.domain.order.Order;
 import com.whiskey.domain.order.repository.OrderRepository;
 import com.whiskey.domain.payment.Payment;
-import com.whiskey.domain.payment.dto.CompensatePaymentInfo;
 import com.whiskey.domain.payment.dto.PaymentCompensationRequest;
 import com.whiskey.domain.payment.repository.PaymentRepository;
 import com.whiskey.payment.client.PaymentClient;
 import com.whiskey.payment.dto.PaymentCancelRequest;
 import com.whiskey.payment.dto.PaymentCancelResponse;
 import com.whiskey.payment.dto.PaymentStatusResponse;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,14 +22,6 @@ public class PaymentCompensationService {
     private final PaymentClient paymentClient;
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
-
-    private final StringRedisTemplate stringRedisTemplate;
-
-    // new ObjectMapper() 는 JavaTimeModule 이 없어 LocalDateTime 직렬화에 실패한다.
-    // 스프링이 구성한 빈을 주입받아 써야 CompensatePaymentInfo.failedAt 이 ISO-8601 로 왕복된다.
-    private final ObjectMapper objectMapper;
-
-    private static final String COMPENSATE_KEY = "payment:compensate";
 
     @Transactional
     public void cancelPayment(PaymentCompensationRequest request) {
@@ -63,13 +48,5 @@ public class PaymentCompensationService {
             order.cancelReservation();
             log.info("보상 트랜잭션 성공 - 결제 취소 완료: paymentId={}", request.paymentId());
         }
-    }
-
-    public void compensateFailurePayment(CompensatePaymentInfo request, LocalDateTime retryAt)
-        throws JsonProcessingException {
-        ZSetOperations<String, String> zSetOperations = stringRedisTemplate.opsForZSet();
-        String jsonData = objectMapper.writeValueAsString(request);
-        double score = retryAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-        zSetOperations.add(COMPENSATE_KEY, jsonData, score);
     }
 }

@@ -13,6 +13,7 @@ import com.whiskey.domain.order.service.OrderService;
 import com.whiskey.domain.payment.Payment;
 import com.whiskey.domain.payment.dto.PaymentConfirmCommand;
 import com.whiskey.domain.payment.exception.PaymentProcessingException;
+import com.whiskey.domain.payment.service.PaymentCompensationQueue;
 import com.whiskey.domain.payment.service.PaymentCompensationService;
 import com.whiskey.domain.payment.service.PaymentService;
 import com.whiskey.payment.client.PaymentClient;
@@ -31,6 +32,7 @@ class PaymentFacadeTest {
     private final PaymentService paymentService = mock(PaymentService.class);
     private final OrderService orderService = mock(OrderService.class);
     private final PaymentCompensationService compensationService = mock(PaymentCompensationService.class);
+    private final PaymentCompensationQueue compensationQueue = mock(PaymentCompensationQueue.class);
 
     @Test
     @DisplayName("결제 완료 처리 실패 후 DLQ 적재까지 실패해도 원인 예외가 덮이지 않는다")
@@ -62,7 +64,8 @@ class PaymentFacadeTest {
     }
 
     private PaymentFacade facade() {
-        PaymentFacade facade = new PaymentFacade(paymentClient, paymentService, orderService, compensationService);
+        PaymentFacade facade =
+            new PaymentFacade(paymentClient, paymentService, orderService, compensationService, compensationQueue);
         ReflectionTestUtils.setField(facade, "retryTime", 5);
         return facade;
     }
@@ -80,11 +83,11 @@ class PaymentFacadeTest {
         when(paymentClient.confirmPayment(any())).thenReturn(new PaymentResponse("pay-key", "order-1", 5000L));
     }
 
-    // 보상 트랜잭션도 실패하고, 그 후처리인 DLQ 적재도 직렬화에서 실패하는 최악의 상황
-    private void givenCompensationAndDlqBothFail() throws JsonProcessingException {
+    // 보상 트랜잭션도 실패하고, 그 후처리인 DLQ 적재까지 실패하는 최악의 상황
+    private void givenCompensationAndDlqBothFail() {
         doThrow(new RuntimeException("PG 취소 실패"))
             .when(compensationService).cancelPayment(any());
-        doThrow(new JsonProcessingException("LocalDateTime 직렬화 실패") {})
-            .when(compensationService).compensateFailurePayment(any(), any());
+        doThrow(new RuntimeException("Redis 접속 실패"))
+            .when(compensationQueue).save(any(), any());
     }
 }
