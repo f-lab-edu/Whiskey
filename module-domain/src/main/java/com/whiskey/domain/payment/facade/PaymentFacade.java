@@ -1,6 +1,5 @@
 package com.whiskey.domain.payment.facade;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.whiskey.domain.order.exception.OrderProcessingException;
 import com.whiskey.domain.order.service.OrderService;
 import com.whiskey.domain.payment.Payment;
@@ -34,7 +33,7 @@ public class PaymentFacade {
     private int retryTime;
 
     // 결제 승인 요청
-    public void confirmPayment(PaymentConfirmCommand command) throws JsonProcessingException {
+    public void confirmPayment(PaymentConfirmCommand command) {
         // 1. 결제와 유효성 검사
         Payment payment = paymentService.validatePayment(command);
 
@@ -67,8 +66,7 @@ public class PaymentFacade {
         }
     }
 
-    private void completePaymentProcess(PaymentCompleteRequest request)
-        throws JsonProcessingException {
+    private void completePaymentProcess(PaymentCompleteRequest request) {
         try {
             paymentService.completePayment(request);
         }
@@ -78,8 +76,7 @@ public class PaymentFacade {
         }
     }
 
-    private void confirmOrderProcess(PaymentCompleteRequest request)
-        throws JsonProcessingException {
+    private void confirmOrderProcess(PaymentCompleteRequest request) {
         try {
             orderService.confirmReservation(request.orderId());
         }
@@ -89,8 +86,7 @@ public class PaymentFacade {
         }
     }
 
-    private void compensatePayment(PaymentCompleteRequest request, String reason)
-        throws JsonProcessingException {
+    private void compensatePayment(PaymentCompleteRequest request, String reason) {
         log.warn("보상 트랜잭션 시작 - reason : {}, paymentOrderId: {}", reason, request.paymentOrderId());
 
         PaymentCompensationRequest compensationRequest = request.toCompensationRequest();
@@ -104,10 +100,9 @@ public class PaymentFacade {
         }
     }
 
-    private void compensationFailureProcess(PaymentCompleteRequest request, String reason, Exception error)
-        throws JsonProcessingException {
+    private void compensationFailureProcess(PaymentCompleteRequest request, String reason, Exception error) {
         log.error("보상 트랜잭션 실패 후처리 - DLQ에 저장");
-        
+
         // Redis sorted set으로 처리
         CompensatePaymentInfo compensatePaymentInfo = new CompensatePaymentInfo(
             request.paymentId(),
@@ -121,6 +116,15 @@ public class PaymentFacade {
         );
 
         LocalDateTime retryAt = LocalDateTime.now().plusMinutes(retryTime);
-        paymentCompensationService.compensateFailurePayment(compensatePaymentInfo, retryAt);
+
+        try {
+            paymentCompensationService.compensateFailurePayment(compensatePaymentInfo, retryAt);
+        }
+        catch (Exception e) {
+            // DLQ 적재 실패는 후처리의 후처리다. 여기서 예외를 올리면 호출부의 catch 블록이 중단되어
+            // 정작 원인인 결제/주문 실패가 이 예외로 덮인 채 클라이언트에 나간다.
+            // 자동 복구 수단이 사라진 상태이므로, 수동 복구에 필요한 정보를 전부 남기고 삼킨다.
+            log.error("보상 트랜잭션 DLQ 적재 실패 - 수동 복구 필요. info: {}, retryAt: {}", compensatePaymentInfo, retryAt, e);
+        }
     }
 }

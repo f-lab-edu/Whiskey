@@ -32,6 +32,10 @@ public class PaymentCompensationService {
 
     private final StringRedisTemplate stringRedisTemplate;
 
+    // new ObjectMapper() 는 JavaTimeModule 이 없어 LocalDateTime 직렬화에 실패한다.
+    // 스프링이 구성한 빈을 주입받아 써야 CompensatePaymentInfo.failedAt 이 ISO-8601 로 왕복된다.
+    private final ObjectMapper objectMapper;
+
     private static final String COMPENSATE_KEY = "payment:compensate";
 
     @Transactional
@@ -64,7 +68,6 @@ public class PaymentCompensationService {
     public void compensateFailurePayment(CompensatePaymentInfo request, LocalDateTime retryAt)
         throws JsonProcessingException {
         ZSetOperations<String, String> zSetOperations = stringRedisTemplate.opsForZSet();
-        ObjectMapper objectMapper = new ObjectMapper();
         String jsonData = objectMapper.writeValueAsString(request);
         double score = retryAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
         zSetOperations.add(COMPENSATE_KEY, jsonData, score);
