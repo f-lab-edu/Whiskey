@@ -184,37 +184,3 @@ docker compose -f docker/docker-compose.yml up -d
 + `@Async`(전용 스레드풀) + `REQUIRES_NEW` 트랜잭션으로 비동기 저장 → 본 요청 지연 없음
 + 로그 저장 실패를 예외 격리하여 본 기능에 영향 없음
 
----
-
-## 📊 성능 테스트
-
-**목표 TPS 산정 (ADR 기반)**
-
-| 항목 | 수치 |
-|------|------|
-| DAU | 1만명 |
-| 1인당 평균 요청 | 10회 |
-| 피크 집중률 | 20% (1시간 집중) |
-| 기준 TPS | 5.6 TPS |
-| 목표 TPS (3배 여유) | **17 TPS** |
-
-**인프라 스펙**
-
-| 서비스 | 스펙 |
-|--------|------|
-| EC2 | t3.micro |
-| RDS | db.t4g.micro (HikariCP 10, 이론상 최대 300 TPS) |
-| ElastiCache | Redis (JWT 블랙리스트, 주문 만료, 결제 재시도, 평점 집계) |
-
-+ **성능 테스트 도구 : K6**
-    - 초기에는 Artillery를 검토했으나, 단계적 부하(ramp-up)·조건 분기 등 시나리오를 코드로 표현하기에 K6가 더 적합하다고 판단해 전환
-    - JavaScript 기반 시나리오로 복잡한 사용자 흐름 작성 및 임계값(threshold) 검증 용이
-+ K6 부하 테스트 시나리오 작성 진행 중 (`feature/k6-load-test`)
-
----
-
-## 📄 ADR (Architecture Decision Records)
-
-+ [성능 테스트 도구 선택](docs/adr/performance-test/001-performance-test-tool.md)
-+ [모니터링 전략](docs/adr/performance-test/002-monitoring-strategy.md)
-+ [목표 TPS 산정](docs/adr/performance-test/003-tps-target-definition.md)
