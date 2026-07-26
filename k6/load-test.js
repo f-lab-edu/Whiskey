@@ -70,9 +70,9 @@ export const options = {
 };
 
 // 실행 예시:
-//   로컬     : k6 run tests/k6/load-test.js
-//   원격     : k6 run -e BASE_URL=https://api.example.com tests/k6/load-test.js
-//   k6 Cloud : k6 cloud run -e BASE_URL=https://api.example.com tests/k6/load-test.js
+//   로컬     : k6 run k6/load-test.js
+//   원격     : k6 run -e BASE_URL=https://api.example.com k6/load-test.js
+//   k6 Cloud : k6 cloud run -e BASE_URL=https://api.example.com k6/load-test.js
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080';
 
 const WHISKEY_IDS = Array.from({ length: 25 }, (_, i) => i + 1);

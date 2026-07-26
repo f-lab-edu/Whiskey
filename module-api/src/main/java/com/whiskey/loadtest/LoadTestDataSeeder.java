@@ -25,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * 이슈 #61 : k6 부하 테스트용 시드 데이터 적재.
  *
- * <p>{@code tests/k6/load-test.js}는 회원 9명 / 위스키 25건 / 재고 25건이 이미 존재한다고 가정하지만
+ * <p>{@code k6/load-test.js}는 회원 9명 / 위스키 25건 / 재고 25건이 이미 존재한다고 가정하지만
  * Flyway 마이그레이션은 DDL만 담고 있어, 시드가 없으면 {@code setup()}의 로그인부터 전부 실패한다.
  * 이 러너가 {@code loadtest} 프로파일 부팅 시 그 전제를 채운다.</p>
  *
@@ -150,7 +150,7 @@ public class LoadTestDataSeeder implements ApplicationRunner {
         }
 
         log.warn("[loadtest-seed] k6 전제와 ID가 불일치 - 기대: 위스키 1~{} / 재고 1~5, 실제: 위스키 {} / 재고 {}."
-                + " 부하 테스트 전용 DB를 비우고(TRUNCATE) 재기동해야 한다. (tests/k6/load-test.js 기준)",
+                + " 부하 테스트 전용 DB를 비우고(TRUNCATE) 재기동해야 한다. (k6/load-test.js 기준)",
             WHISKEY_SPECS.size(), whiskeyIds, stockIds);
     }
 
